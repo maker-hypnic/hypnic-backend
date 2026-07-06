@@ -1,0 +1,28 @@
+{
+  "name": "hypnic-backend",
+  "version": "1.0.0",
+  "description": "Backend for Hypnic",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npx nodemon\" \"tsc -w & npx firebase-tools emulators:start --only functions\"",
+    "build": "tsc",
+    "deploy": "npm run build && firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.11.1",
+    "firebase-functions": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "concurrently": "^8.0.1",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.6.3"
+  }
+}
