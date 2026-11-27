@@ -1,0 +1,995 @@
+<title>Agent Garden HYPNIC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Maqueta del admin de HYPNIC · sección Second Brain › Agent Garden.
+   Layout: el shell real del panel (sidebar flotante en píldora sobre salvia + contenido en tarjetas planas muy
+   redondeadas). Tokens copiados de public/admin/styles.css (línea gráfica «lima», nov 2026). */
+:root {
+  --ground: #B3BCB0; --surface: #FFFFFF; --surface-2: #E8EBE6; --surface-sage: #8A9488;
+  --ink: #111311; --ink-inverse: #FFFFFF;
+  --neutral: rgba(17,19,17,.08); --neutral-hover: rgba(17,19,17,.14);
+  --accent: #E4FF6A; --accent-hover: #D6F24E; --accent-ink: #4B5A0E; --on-accent: #111311;
+  --text-secondary: rgba(17,19,17,.62); --text-muted: rgba(17,19,17,.46);
+  --ok-fg: #0E6B40; --ok-bg: rgba(16,185,129,.16);
+  --danger-fg: #B3261E; --danger-bg: rgba(220,68,58,.12);
+  --off-fg: rgba(17,19,17,.58); --off-bg: rgba(17,19,17,.06);
+  --warn: #8A5B00; --warn-bg: rgba(224,168,0,.16);
+  --line: rgba(17,19,17,.09); --bg-alt: #F1F3EF;
+  --font-ui: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --radius-card: 30px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #131713; --surface: #1C211C; --surface-2: #232923; --surface-sage: #2C342C;
+  --ink: #F2F5EE; --ink-inverse: #111311; --neutral: rgba(242,245,238,.10); --neutral-hover: rgba(242,245,238,.16);
+  --accent: #E4FF6A; --accent-hover: #D6F24E; --accent-ink: #D6F24E; --on-accent: #111311;
+  --text-secondary: rgba(242,245,238,.68); --text-muted: rgba(242,245,238,.48);
+  --ok-fg: #7EE2A8; --ok-bg: rgba(16,185,129,.16); --danger-fg: #FFA79F; --danger-bg: rgba(220,68,58,.18);
+  --off-fg: rgba(242,245,238,.58); --off-bg: rgba(242,245,238,.07); --warn: #F0C36B; --warn-bg: rgba(240,195,107,.16);
+  --line: rgba(242,245,238,.10); --bg-alt: #232923; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --ground: #131713; --surface: #1C211C; --surface-2: #232923; --surface-sage: #2C342C;
+  --ink: #F2F5EE; --ink-inverse: #111311; --neutral: rgba(242,245,238,.10); --neutral-hover: rgba(242,245,238,.16);
+  --accent: #E4FF6A; --accent-hover: #D6F24E; --accent-ink: #D6F24E; --on-accent: #111311;
+  --text-secondary: rgba(242,245,238,.68); --text-muted: rgba(242,245,238,.48);
+  --ok-fg: #7EE2A8; --ok-bg: rgba(16,185,129,.16); --danger-fg: #FFA79F; --danger-bg: rgba(220,68,58,.18);
+  --off-fg: rgba(242,245,238,.58); --off-bg: rgba(242,245,238,.07); --warn: #F0C36B; --warn-bg: rgba(240,195,107,.16);
+  --line: rgba(242,245,238,.10); --bg-alt: #232923; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font: 15px/1.5 var(--font-ui); color: var(--ink); background: var(--ground); letter-spacing: -.005em; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.muted { color: var(--text-secondary); } .mm { color: var(--text-muted); }
+.mono { font-family: var(--font-mono); font-size: 12.5px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ---- shell ---- */
+.shell { display: flex; min-height: 100%; }
+.sidebar { width: 232px; flex: none; background: var(--surface-2); border-radius: 30px; margin: 12px 0 12px max(12px, env(safe-area-inset-left, 0px)); padding: 20px 12px; position: sticky; top: 12px; height: calc(100vh - 24px); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-logo { font-weight: 600; font-size: 22px; letter-spacing: -.04em; padding: 2px 12px 14px; }
+.sidebar-nav { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+.nav-group-label { padding: 14px 12px 4px; font: 500 10.5px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 999px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; }
+.nav-item:hover { background: var(--surface); color: var(--ink); }
+.nav-item.active { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.nav-item.nuevo::after { content: "nuevo"; margin-left: auto; font: 500 9.5px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; background: var(--ink); color: var(--ink-inverse); border-radius: 999px; padding: 2px 7px; }
+.nav-item.active.nuevo::after { background: var(--on-accent); color: var(--accent); }
+.nav-item svg { width: 18px; height: 18px; flex: none; }
+.sidebar-bottom { border-top: 1px solid var(--line); padding: 12px 10px 0; font-size: 12.5px; color: var(--text-secondary); }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: inline-grid; place-items: center; font-weight: 700; font-size: 12px; }
+.content { flex: 1; min-width: 0; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1240px; }
+@media (min-width: 900px) { .content { padding-left: 34px; } }
+.topbar { display: none; }
+@media (max-width: 860px) {
+  .shell { flex-direction: column; }
+  .sidebar { position: static; width: auto; height: auto; margin: 12px; border-radius: 22px; padding: 14px 10px; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .nav-group-label { width: 100%; }
+  .nav-item { padding: 7px 11px; font-size: 13px; }
+  .nav-item.oculto-movil { display: none; }
+  .sidebar-bottom { display: none; }
+}
+
+/* ---- cabecera y tarjetas ---- */
+.maqueta-aviso { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: var(--ink); color: var(--ink-inverse); border-radius: 999px; padding: 8px 16px; font-size: 12.5px; margin-bottom: 18px; }
+.maqueta-aviso .mono { color: var(--accent); }
+.breadcrumb { display: inline-flex; gap: 6px; color: var(--text-secondary); font: 400 11px var(--font-mono); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+.page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; margin-bottom: 20px; }
+.page-title { font-size: 40px; font-weight: 400; letter-spacing: -.045em; line-height: 1.02; margin: 0; text-wrap: balance; }
+.page-sub { margin: 6px 0 0; max-width: 62ch; }
+.page-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 600px) { .page-title { font-size: 30px; } }
+.card { background: var(--surface); border-radius: var(--radius-card); padding: 24px 26px; margin: 0 0 18px; min-width: 0; }
+.card h2 { margin: 0 0 14px; font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
+.card h3 { margin: 18px 0 8px; font: 500 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.card .card { background: var(--surface-2); }
+.card-dark { background: var(--ink); color: var(--ink-inverse); }
+.card-lima { background: var(--accent); color: var(--on-accent); }
+.card-lima .muted, .card-lima .mm { color: rgba(17,19,17,.62); }
+.card-dark .muted, .card-dark .mm { color: rgba(255,255,255,.7); }
+.ch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.ch h2 { margin: 0; }
+.grid { display: grid; gap: 14px; }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.grid-nuevo { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+@media (max-width: 860px) { .grid-nuevo { grid-template-columns: minmax(0, 1fr); } }
+.metric .l { font: 500 10.5px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+.card-lima .metric .l, .card-dark .metric .l { color: inherit; opacity: .7; }
+.metric .n { font-size: 34px; font-weight: 400; letter-spacing: -.04em; line-height: 1.05; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.metric .n small { font-size: 13px; font-weight: 500; opacity: .7; }
+.metric .f { margin-top: 8px; font-size: 12.5px; opacity: .8; }
+
+/* ---- controles ---- */
+.btn { padding: 10px 20px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; font-weight: 500; transition: background .15s, transform .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--surface-2); border-color: var(--neutral-hover); }
+.btn.primary { background: var(--ink); color: var(--ink-inverse); border-color: var(--ink); font-weight: 600; }
+.btn.primary:hover { transform: translateY(-1px); }
+.btn.secondary { background: transparent; border-color: rgba(17,19,17,.18); }
+.btn.danger { color: var(--danger-fg); background: var(--danger-bg); border-color: transparent; }
+.btn.small { padding: 5px 13px; font-size: 13px; }
+.btn.link { background: none; border: none; padding: 4px 0; text-decoration: underline; text-decoration-color: var(--accent-hover); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.pills { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.pill { padding: 8px 17px; border-radius: 999px; border: 1px solid transparent; background: var(--surface); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 500; text-decoration: none; }
+.pill:hover { background: var(--surface-2); color: var(--ink); }
+.pill.active { background: var(--ink); color: var(--ink-inverse); }
+.pills.small .pill { padding: 6px 13px; font-size: 13px; }
+.badge { font-size: 12px; padding: 4px 11px; border-radius: 999px; font-weight: 600; display: inline-block; white-space: nowrap; }
+.badge.ok { color: var(--ok-fg); background: var(--ok-bg); }
+.badge.off { color: var(--danger-fg); background: var(--danger-bg); }
+.badge.neutral { color: var(--off-fg); background: var(--off-bg); }
+.badge.warn { color: var(--warn); background: var(--warn-bg); }
+.badge.ink { color: var(--ink-inverse); background: var(--ink); }
+.badge.lima { color: var(--on-accent); background: var(--accent); }
+.chip { font: 400 12.5px var(--font-mono); padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink); display: inline-block; border: none; cursor: pointer; }
+.chip.active, .chip:hover { background: var(--accent); color: var(--on-accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+label.field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--text-muted); min-width: 0; }
+input, select, textarea { font: inherit; color: var(--ink); border: 1px solid transparent; border-radius: 16px; background: var(--surface-2); padding: 10px 14px; width: 100%; max-width: 100%; }
+.card .card input, .card .card select, .card .card textarea { background: var(--surface); }
+textarea { min-height: 120px; resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 4px rgba(228,255,106,.75); outline: none; background: var(--surface); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.row.between { justify-content: space-between; }
+.table-wrap { overflow-x: auto; max-width: 100%; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { color: var(--text-muted); font: 500 10.5px var(--font-mono); text-transform: uppercase; letter-spacing: .12em; }
+tr:last-child td { border-bottom: none; }
+td .sub { font-size: 12px; color: var(--text-muted); display: block; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
+
+/* ---- interruptor (el .cx-switch / .sel-switch del panel) ---- */
+.sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+.sw input { appearance: none; width: 36px; height: 20px; border-radius: 999px; background: var(--neutral-hover); position: relative; margin: 0; padding: 0; cursor: pointer; transition: background .15s; flex: none; }
+.sw input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.sw input:checked { background: var(--ink); }
+.sw input:checked::after { transform: translateX(16px); background: var(--accent); }
+.sw input:disabled { opacity: .4; cursor: not-allowed; }
+.sw input:focus { box-shadow: 0 0 0 3px rgba(228,255,106,.75); }
+
+/* ---- catálogo ---- */
+.tpl { background: var(--surface); border-radius: 22px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; cursor: pointer; border: 1px solid transparent; }
+.tpl:hover { border-color: var(--ink); }
+.tpl h4 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.tpl .area { font: 500 10.5px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.tpl .desc { font-size: 13.5px; color: var(--text-secondary); min-height: 2.6em; }
+.tpl .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.tpl.estructural { background: var(--surface-2); }
+
+/* ---- Datos y permisos (recortes por consumidor) ---- */
+.sel-canal { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 12px 0; background: var(--surface); min-width: 0; }
+.card .sel-canal { background: var(--surface-2); border-color: transparent; }
+.sel-canal-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }
+.sel-canal-cab h4 { margin: 0; font-size: 15px; }
+.sel-switch { margin-left: auto; }
+.sel-grupo { border: 0; border-left: 2px solid var(--line); margin: 6px 0 6px 6px; padding: 0 0 0 10px; min-width: 0; }
+.sel-grupo legend { font-size: 11.5px; color: var(--text-muted); padding: 0; }
+.sel-item { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 4px 0; font-size: 13px; }
+.sel-item .sw { flex: none; }
+.sel-detalle { flex: 1 1 100%; margin: 0 0 0 44px; font-size: 12px; color: var(--text-muted); }
+.sel-bloqueado { color: var(--text-muted); }
+.sel-aviso { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; margin: 8px 0; }
+.sel-ok { background: var(--ok-bg); color: var(--ok-fg); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; margin: 8px 0; }
+
+/* ---- asistente «Nuevo agente» ---- */
+.pasos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.paso { font: 500 11px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; background: var(--surface); color: var(--text-muted); border: 1px solid transparent; cursor: pointer; }
+.paso.hecho { color: var(--ink); border-color: var(--line); }
+.paso.activo { background: var(--ink); color: var(--ink-inverse); }
+.opc { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.opc label { background: var(--surface-2); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; border: 1px solid transparent; font-size: 13.5px; }
+.opc label:has(input:checked) { border-color: var(--ink); background: var(--surface); }
+.opc label input { width: auto; margin: 0 0 4px; }
+.opc b { font-weight: 600; }
+.resumen dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; font-size: 13.5px; }
+.resumen dt { color: var(--text-muted); } .resumen dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+/* ---- varios ---- */
+.estado-lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.estado-lista li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.estado-lista .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-top: 6px; background: var(--off-fg); }
+.dot.ok { background: var(--ok-fg); } .dot.warn { background: var(--warn); } .dot.off { background: var(--danger-fg); } .dot.lima { background: var(--accent); }
+.matriz td:not(:first-child) { text-align: center; }
+.si { color: var(--ok-fg); font-weight: 600; } .no { color: var(--text-muted); } .ok-h { color: var(--warn); font-weight: 600; }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.timeline li { display: grid; grid-template-columns: 76px 1fr; gap: 10px; font-size: 13.5px; }
+.timeline .mono { color: var(--text-muted); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--ink-inverse); padding: 10px 18px; border-radius: 999px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px); z-index: 20; }
+.toast.on { opacity: 1; }
+.vista[hidden] { display: none !important; }
+.empresa-sel { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.empresa-sel .pill { padding: 6px 13px; font-size: 13px; }
+.gauge { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.gauge i { display: block; height: 100%; background: var(--ink); border-radius: 999px; }
+.gauge i.warn { background: var(--warn); } .gauge i.off { background: var(--danger-fg); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 13.5px; margin: 0; }
+.kv dt { color: var(--text-muted); } .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">⬡ hypnic</div>
+    <nav class="sidebar-nav" id="nav">
+      <div class="nav-group-label">Clientes</div>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h14v-9"/></svg>Inicio</a>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="8" height="12"/><rect x="13" y="3" width="8" height="17"/></svg>Empresas</a>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c1-3.6 3.6-5.5 6.5-5.5s5.5 1.9 6.5 5.5"/></svg>Usuarios</a>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m8 8-4.5 4L8 16"/><path d="m16 8 4.5 4L16 16"/><path d="m13.5 5-3 14"/></svg>Desarrollos</a>
+      <div class="nav-group-label">Second Brain</div>
+      <a class="nav-item" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5.5" rx="8" ry="2.8"/><path d="M4 5.5V12c0 1.5 3.6 2.8 8 2.8s8-1.3 8-2.8V5.5"/><path d="M4 12v6.5c0 1.5 3.6 2.8 8 2.8s8-1.3 8-2.8V12"/></svg>Fuentes y warehouse</a>
+      <a class="nav-item nuevo" href="#catalogo" data-nav="garden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v6"/><path d="M12 9c-4 0-7 3-7 7h14c0-4-3-7-7-7Z"/><path d="M5 16v4h14v-4"/></svg>Agent Garden</a>
+      <a class="nav-item" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agente organizador</a>
+      <a class="nav-item" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M9 9v11"/></svg>Personalizador de front</a>
+      <div class="nav-group-label">Configuración</div>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10.5" width="14" height="9.5" rx="1.6"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>Secretos</a>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4"/></svg>MCPs de terceros</a>
+      <a class="nav-item oculto-movil" href="#catalogo" data-nav="otra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v9l6 3.2"/><circle cx="12" cy="12" r="9"/></svg>Auditoría</a>
+    </nav>
+    <div class="sidebar-bottom"><span class="avatar">J</span> &nbsp;juan@hypnic.us<br><span class="mm">superadmin · HYPNIC</span></div>
+  </aside>
+
+  <main class="content">
+    <div class="maqueta-aviso"><span class="mono">MAQUETA</span><span>Datos de ejemplo. Nada lee ni escribe en sistemas reales. Sirve para decidir pantallas y gobernanza antes de escribir código.</span></div>
+
+    <div class="breadcrumb">Admin · Second Brain · Agent Garden</div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" id="titulo">Agent Garden</h1>
+        <p class="page-sub muted" id="subtitulo">Catálogo de agentes por departamento, una instancia por marca, y el agente madre de cada cerebro. Lo opera HYPNIC; el cliente pide.</p>
+      </div>
+      <div class="page-actions" id="acciones"></div>
+    </div>
+
+    <div class="pills" id="subnav">
+      <a class="pill" href="#catalogo" data-sub="catalogo">Catálogo</a>
+      <a class="pill" href="#instancias" data-sub="instancias">Instancias por empresa</a>
+      <a class="pill" href="#madre" data-sub="madre">Agente madre</a>
+      <a class="pill" href="#solicitudes" data-sub="solicitudes">Solicitudes <span class="badge lima" style="margin-left:4px">3</span></a>
+      <a class="pill" href="#gobernanza" data-sub="gobernanza">Gobernanza</a>
+      <a class="pill" href="#consumo" data-sub="consumo">Consumo y topes</a>
+      <a class="pill" href="#auditoria" data-sub="auditoria">Auditoría</a>
+    </div>
+
+    <!-- ================= CATÁLOGO ================= -->
+    <section class="vista" id="v-catalogo">
+      <div class="grid grid-4" style="margin-bottom:18px">
+        <div class="card card-lima metric" style="margin:0"><div class="l">Plantillas publicadas</div><div class="n">9</div><div class="f">7 genéricas de HYPNIC · 2 a la medida</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Instancias activas</div><div class="n">6</div><div class="f">en 3 empresas</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Estructurales</div><div class="n">1 <small>madre</small></div><div class="f">organizador y front viven fuera del catálogo</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Runtimes</div><div class="n">2</div><div class="f">Agent Runtime (ADK) · hypnic-agents</div></div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <h2>Plantillas por departamento</h2>
+          <div class="chips" id="filtro-area"></div>
+        </div>
+        <p class="muted" style="margin:0 0 14px;font-size:13.5px">Una plantilla es un desarrollo de tipo agente con versiones. Se instancia por marca. Las estructurales solo las crea HYPNIC.</p>
+        <div class="grid grid-3" id="catalogo-grid"></div>
+      </div>
+      <div class="card" style="background:var(--surface-2)">
+        <div class="ch"><h2>Plantillas de partida de Google (Agent Garden)</h2><span class="badge neutral">solo referencia</span></div>
+        <p class="muted" style="font-size:13.5px;margin:0 0 10px">Google Agent Garden es una biblioteca de ejemplos. De aquí se copia código de arranque hacia una plantilla nuestra; nunca se instancia directo ni guarda nada de una empresa.</p>
+        <div class="chips"><span class="chip">RAG sobre documentos</span><span class="chip">Data analyst (BigQuery)</span><span class="chip">Customer service multi-tool</span><span class="chip">Agent Platform with governance</span><button class="btn small" data-toast="Maqueta: abriría el asistente con la base «Plantilla de Google» ya elegida">Usar como base →</button></div>
+      </div>
+    </section>
+
+    <!-- ================= FICHA DE PLANTILLA ================= -->
+    <section class="vista" id="v-plantilla" hidden>
+      <div class="grid grid-2">
+        <div>
+          <div class="card">
+            <div class="ch"><h2 id="tpl-nombre">Analista de ventas</h2><span class="badge ok">v3 publicada</span></div>
+            <dl class="kv">
+              <dt>Departamento</dt><dd id="tpl-area">Ventas</dd>
+              <dt>Tipo</dt><dd>No estructural · alcance empresa</dd>
+              <dt>Runtime</dt><dd>Agent Runtime (ADK) · proyecto hypnic-garden-01 · us-central1</dd>
+              <dt>Modelo</dt><dd>gemini-3.8-flash · razonamiento medio · temperatura 0.2 · salida 4096 tokens</dd>
+              <dt>Lee datos por</dt><dd>MCP de la empresa, tools <span class="mono">cerebro__catalogo</span> y <span class="mono">cerebro__consultar</span>. Nunca SQL ni BigQuery directo.</dd>
+              <dt>MCP requeridos</dt><dd><span class="badge neutral">cerebro · ventas_importe_v1</span> <span class="badge neutral">cerebro · ventas_unidades_v1</span> <span class="badge warn">comercio · pedidos (lectura, opcional)</span></dd>
+              <dt>Skills</dt><dd>comparar-periodos · explicar-variacion · redactar-resumen-gerencia</dd>
+              <dt>Harness base</dt><dd>reglas.md (voz HYPNIC) · guarda de claves prohibidas · tope de 6 llamadas por respuesta</dd>
+              <dt>Instancias</dt><dd>Chok Chok (activa) · Electro Feria (probando)</dd>
+            </dl>
+            <h3>Instrucciones (v3, solo lectura: se editan en un borrador nuevo)</h3>
+            <div class="card" style="margin:0"><pre class="mono" style="white-space:pre-wrap;margin:0;font-size:12.5px">Eres el analista de ventas de {{empresa}}. Respondes solo con cifras certificadas del cerebro.
+Cada cifra lleva su corte y su nivel. Si un dato no está, dices que no está; nunca inventas un cero.
+No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al agente madre.
+{{reglas}} {{voz}}</pre></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="ch"><h2>Versiones</h2><button class="btn small primary" data-toast="Maqueta: crearía v4 como borrador copiando v3">+ Nueva versión (borrador)</button></div>
+            <div class="table-wrap"><table>
+              <tr><th>Versión</th><th>Estado</th><th>Cambió</th><th>Instancias</th></tr>
+              <tr><td>v3</td><td><span class="badge ok">publicada</span></td><td>24 nov · Mar<span class="sub">skill explicar-variacion; tope de llamadas 6</span></td><td class="num">2</td></tr>
+              <tr><td>v2</td><td><span class="badge neutral">retirable</span></td><td>12 nov · Juan<span class="sub">modelo a gemini-3.8-flash</span></td><td class="num">0</td></tr>
+              <tr><td>v1</td><td><span class="badge neutral">retirada</span></td><td>3 nov · Juan</td><td class="num">0</td></tr>
+            </table></div>
+            <p class="mm" style="font-size:12.5px;margin:10px 0 0">Publicar una versión no mueve ninguna instancia. Cada instancia se actualiza una a una, pasando por «probando».</p>
+          </div>
+          <div class="card">
+            <h2>Gobernanza de esta plantilla</h2>
+            <ul class="estado-lista">
+              <li><span class="dot ok"></span><span><b>Instanciar</b>: superadmin de HYPNIC. Primera activación por empresa: un dueño.</span></li>
+              <li><span class="dot ok"></span><span><b>Datos</b>: solo recursos del cerebro y comercio de lectura. ERP y contabilidad no son seleccionables (clase empresa).</span></li>
+              <li><span class="dot ok"></span><span><b>Topes por defecto</b>: 2 USD/día por instancia · 40 USD/mes por empresa (se ajustan en la instancia).</span></li>
+              <li><span class="dot lima"></span><span><b>El agente madre puede</b> pedir esta plantilla en una solicitud. No puede activarla.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= NUEVO AGENTE (asistente) ================= -->
+    <section class="vista" id="v-nuevo" hidden>
+      <div class="pasos" id="pasos"></div>
+      <div class="grid grid-nuevo">
+        <div class="card" id="paso-cuerpo"></div>
+        <div>
+          <div class="card resumen">
+            <h2>Resumen</h2>
+            <dl id="resumen-dl"></dl>
+          </div>
+          <div class="card card-dark">
+            <h2 style="color:inherit">Qué pasa al terminar</h2>
+            <p class="muted" style="font-size:13.5px;margin:0">Se crea la plantilla con su <b style="color:var(--accent)">versión 1 en borrador</b>. No corre en ninguna empresa hasta que se publique y se instancie. Nada se despliega desde este asistente.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row between">
+        <button class="btn secondary" id="paso-atras">← Atrás</button>
+        <button class="btn primary" id="paso-sig">Siguiente →</button>
+      </div>
+    </section>
+
+    <!-- ================= INSTANCIAS ================= -->
+    <section class="vista" id="v-instancias" hidden>
+      <div class="card">
+        <div class="ch">
+          <h2>Instancias por empresa</h2>
+          <div class="empresa-sel" id="empresa-sel"></div>
+        </div>
+        <div class="grid grid-4" style="margin-bottom:16px" id="inst-kpis"></div>
+        <div class="table-wrap"><table id="inst-tabla">
+          <thead><tr><th>Instancia</th><th>Plantilla</th><th>Runtime</th><th>Estado</th><th>Datos y MCP</th><th class="num">Consumo mes</th><th>Tope</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+      <div class="card" style="background:var(--surface-2)">
+        <div class="ch"><h2>Activar una plantilla en esta empresa</h2></div>
+        <div class="row">
+          <label class="field" style="flex:1 1 220px">Plantilla<select id="act-tpl"><option>Analista de contabilidad (v2)</option><option>Analista de inventario (v1)</option><option>Mercadeo · informe semanal (v2)</option><option>Compras · alertas de reposición (v1)</option></select></label>
+          <label class="field" style="flex:1 1 160px">Versión<select><option>Última publicada</option></select></label>
+          <label class="field" style="flex:1 1 140px">Tope diario (USD)<input value="2.00"></label>
+          <button class="btn primary" data-toast="Maqueta: crearía la instancia en estado «creada» con su identidad y su consumidor MCP; no se activa todavía">Instanciar</button>
+        </div>
+        <p class="mm" style="font-size:12.5px;margin:10px 0 0">Instanciar crea la identidad de servicio, el consumidor del MCP de la empresa y los overlays en storage. Queda en «creada»: después se conectan datos, se prueba y se activa.</p>
+      </div>
+    </section>
+
+    <!-- ================= FICHA DE INSTANCIA ================= -->
+    <section class="vista" id="v-instancia" hidden>
+      <div class="pills small" id="inst-tabs">
+        <button class="pill active" data-itab="resumen">Resumen</button>
+        <button class="pill" data-itab="datos">Datos y MCP</button>
+        <button class="pill" data-itab="harness">Harness y skills</button>
+        <button class="pill" data-itab="personas">Personas</button>
+        <button class="pill" data-itab="consumo">Consumo</button>
+        <button class="pill" data-itab="auditoria">Auditoría</button>
+      </div>
+
+      <div data-ipanel="resumen">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="ch"><h2 id="inst-nombre">Analista de ventas · Chok Chok</h2><span class="badge ok">activa</span></div>
+            <dl class="kv">
+              <dt>Plantilla</dt><dd>Analista de ventas · <b>v3</b> <button class="btn link small" data-toast="Maqueta: v3 es la última; no hay actualización pendiente">¿actualizar?</button></dd>
+              <dt>Empresa</dt><dd>Chok Chok (marca única)</dd>
+              <dt>Runtime</dt><dd>Agent Runtime · <span class="mono">projects/hypnic-garden-01/locations/us-central1/reasoningEngines/…</span></dd>
+              <dt>Identidad</dt><dd><span class="mono">garden-chok-ventas@hypnic-garden-01.iam…</span></dd>
+              <dt>Consumidor MCP</dt><dd><span class="mono">mcp.hypnic.us/chok-chok/mcp</span> · 3 recursos permitidos</dd>
+              <dt>Se usa desde</dt><dd>Cerebro de Chok Chok › área Ventas (pregunta al analista)</dd>
+              <dt>Salud</dt><dd><span class="badge ok">ping 180 ms</span> <span class="badge ok">meta v3</span> último uso hace 12 min</dd>
+            </dl>
+            <h3>Acciones</h3>
+            <div class="row">
+              <button class="btn small" data-toast="Maqueta: correría ping, meta y el evalset de la plantilla (12 casos)">Probar</button>
+              <button class="btn small" data-toast="Maqueta: pausaría la instancia; el MCP deja de atender a su consumidor">Pausar</button>
+              <button class="btn small danger" data-toast="Maqueta: pediría confirmación; conserva el historial">Retirar</button>
+            </div>
+          </div>
+          <div>
+            <div class="card card-lima">
+              <h2 style="color:inherit">Ciclo de vida</h2>
+              <ul class="estado-lista">
+                <li><span class="dot ok"></span><span>Solicitada · 3 nov · agente madre de Chok, pedido de Carlos</span></li>
+                <li><span class="dot ok"></span><span>Evaluada y cotizada · 4 nov · Mar · 3 h de soporte</span></li>
+                <li><span class="dot ok"></span><span>Creada · 5 nov · Juan</span></li>
+                <li><span class="dot ok"></span><span>Probada · 6 nov · evalset 12/12</span></li>
+                <li><span class="dot ok"></span><span>Activada · 7 nov · <b>Mar (dueña)</b>, primera activación en Chok</span></li>
+                <li><span class="dot lima"></span><span>Midiendo · consumo del mes 14,20 USD de 40</span></li>
+              </ul>
+            </div>
+            <div class="card">
+              <h2>Límites de esta instancia</h2>
+              <div class="row">
+                <label class="field" style="flex:1 1 140px">Tope diario (USD)<input value="2.00"></label>
+                <label class="field" style="flex:1 1 140px">Llamadas MCP / día<input value="400"></label>
+                <label class="field" style="flex:1 1 140px">Escritura<select disabled><option>No (plantilla de lectura)</option></select></label>
+              </div>
+              <div class="row" style="margin-top:10px"><button class="btn small primary" data-toast="Maqueta: guardaría y auditaría el cambio de tope">Guardar</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-ipanel="datos" hidden>
+        <div class="card">
+          <div class="ch"><h2>Datos y MCP de esta instancia</h2><button class="btn small primary" id="btn-conectar-mcp">+ Conectar un MCP</button></div>
+          <p class="muted" style="font-size:13.5px;margin:0 0 6px">Es la misma selección por consumidor de «Datos y permisos», vista desde la instancia. La credencial la entrega el corredor por llamada; el agente nunca la ve.</p>
+          <div class="sel-ok">Regla del 25-nov aplicada: los sistemas de empresa (ERP, contabilidad) solo son seleccionables para el agente madre o el cerebro. Para este agente aparecen bloqueados.</div>
+
+          <div class="sel-canal">
+            <div class="sel-canal-cab"><h4>Cerebro (Hypnic Data)</h4><span class="badge ok">conectado</span><span class="chip">clase: empresa · lectura</span><label class="sw sel-switch"><input type="checkbox" checked> canal mcp</label></div>
+            <fieldset class="sel-grupo"><legend>Métricas certificadas</legend>
+              <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> ventas_importe_v1 <span class="mm">· corte 26 nov · actualizado</span></div>
+              <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> ventas_unidades_v1 <span class="mm">· corte 26 nov</span></div>
+              <div class="sel-item"><label class="sw"><input type="checkbox"></label> existencia_bodega_v1 <span class="mm">· no la pide la plantilla</span></div>
+              <div class="sel-item"><label class="sw"><input type="checkbox"></label> ventas_sin_stock_v1</div>
+              <div class="sel-item sel-bloqueado"><label class="sw"><input type="checkbox" disabled></label> cliente_ventas_v1 <span class="badge off">personas · apagado (S1)</span><span class="sel-detalle">Datos de personas apagados hasta registro de tratamiento.</span></div>
+            </fieldset>
+          </div>
+
+          <div class="sel-canal">
+            <div class="sel-canal-cab"><h4>Shopify</h4><span class="badge ok">conectado</span><span class="chip">clase: comercio · lectura</span><label class="sw sel-switch"><input type="checkbox" checked> canal mcp</label></div>
+            <fieldset class="sel-grupo"><legend>Tools</legend>
+              <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> pedidos.listar <span class="mm">· últimos 90 días</span></div>
+              <div class="sel-item"><label class="sw"><input type="checkbox"></label> productos.listar</div>
+              <div class="sel-item sel-bloqueado"><label class="sw"><input type="checkbox" disabled></label> crear_link_pago <span class="badge off">escritura</span><span class="sel-detalle">La escritura exige un consumidor de servicio con confirmación humana. Esta plantilla es de lectura.</span></div>
+            </fieldset>
+          </div>
+
+          <div class="sel-canal">
+            <div class="sel-canal-cab"><h4>Siigo (ERP y contabilidad)</h4><span class="badge neutral">conectado en la empresa</span><span class="chip">clase: empresa · sistema</span><label class="sw sel-switch"><input type="checkbox" disabled> canal mcp</label></div>
+            <div class="sel-aviso">Bloqueado para este agente. Los MCP de sistemas de empresa van al agente madre o al cerebro, nunca a un agente suelto. Si el analista necesita una cifra contable, se la pide al madre o la lee certificada del cerebro.</div>
+          </div>
+
+          <div class="sel-canal">
+            <div class="sel-canal-cab"><h4>Google Workspace (correo, calendario)</h4><span class="badge neutral">personal</span><span class="chip">clase: personal · por usuario</span></div>
+            <div class="sel-aviso">No aplica a una instancia de empresa. Los MCP personales se conectan por persona, desde su propio perfil, y los usan sus agentes personales. Hoy no existe en platform (pendiente, fase 4).</div>
+          </div>
+
+          <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: guardaría la selección del consumidor y quedaría en el historial">Guardar selección</button><button class="btn secondary" data-toast="Maqueta: volvería al mínimo seguro de la plantilla">Restablecer al mínimo de la plantilla</button></div>
+        </div>
+
+        <div class="card" id="conectar-mcp" hidden>
+          <div class="ch"><h2>Conectar un MCP a esta instancia</h2><button class="btn small" id="btn-cerrar-conectar">Cerrar</button></div>
+          <p class="muted" style="font-size:13.5px;margin:0 0 12px">Solo se ofrece lo que la empresa ya tiene conectado (Secretos) o lo que HYPNIC registró en «MCPs de terceros». No se pega ninguna credencial aquí.</p>
+          <div class="opc">
+            <label><input type="radio" name="mcpn"><b>Alegra (contabilidad)</b><span class="mm">clase empresa · <span class="badge off">no seleccionable para este rol</span></span></label>
+            <label><input type="radio" name="mcpn" checked><b>Meta Ads</b><span class="mm">clase comercio · lectura · 6 tools</span></label>
+            <label><input type="radio" name="mcpn"><b>Higgsfield (MCP de tercero)</b><span class="mm">clase gasto · requiere confirmación humana por llamada</span></label>
+            <label><input type="radio" name="mcpn"><b>Cerebro · grafo (futuro)</b><span class="mm">cuando exista la capa de conocimiento</span></label>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: añadiría Meta Ads al consumidor con todas las tools apagadas; luego se eligen una a una">Añadir con todo apagado</button></div>
+        </div>
+      </div>
+
+      <div data-ipanel="harness" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="ch"><h2>Harness de Chok Chok para esta instancia</h2><span class="badge neutral">v2 · hash 9f1c…</span></div>
+            <p class="muted" style="font-size:13.5px;margin:0 0 10px">Archivos privados en hypnic-storage. Cada cambio crea una versión nueva; el agente los recibe ya resueltos al empaquetar.</p>
+            <div class="table-wrap"><table>
+              <tr><th>Archivo</th><th>Qué es</th><th>Cambió</th></tr>
+              <tr><td class="mono">reglas-chok.md</td><td>Tono de la marca, qué no decir, cómo nombrar las tiendas</td><td>18 nov · Mar</td></tr>
+              <tr><td class="mono">glosario.md</td><td>Nombres de bodegas y canales de Chok</td><td>7 nov · Juan</td></tr>
+              <tr><td class="mono">limites.yaml</td><td>Máximo 6 llamadas por respuesta, sin ventana mayor a 365 días</td><td>7 nov · Juan</td></tr>
+            </table></div>
+            <div class="row" style="margin-top:12px"><button class="btn small" data-toast="Maqueta: subiría un archivo a storage y crearía la versión v3">Subir archivo</button><button class="btn small" data-toast="Maqueta: abriría el editor con v2 como base">Editar reglas-chok.md</button></div>
+          </div>
+          <div class="card">
+            <h2>Skills</h2>
+            <div class="table-wrap"><table>
+              <tr><th>Skill</th><th>Origen</th><th>Estado</th></tr>
+              <tr><td>comparar-periodos</td><td>plantilla v3</td><td><span class="badge ok">activa</span></td></tr>
+              <tr><td>explicar-variacion</td><td>plantilla v3</td><td><span class="badge ok">activa</span></td></tr>
+              <tr><td>redactar-resumen-gerencia</td><td>plantilla v3</td><td><span class="badge neutral">apagada en Chok</span></td></tr>
+              <tr><td>k-beauty-estacionalidad</td><td>propia de Chok · storage</td><td><span class="badge ok">activa</span></td></tr>
+            </table></div>
+            <p class="mm" style="font-size:12.5px;margin:10px 0 0">Las skills de la plantilla se apagan por instancia; las propias de la empresa se suben como archivos y se versionan igual que el harness.</p>
+          </div>
+        </div>
+      </div>
+
+      <div data-ipanel="personas" hidden>
+        <div class="card">
+          <div class="ch"><h2>Quién usa esta instancia</h2><span class="badge neutral">por área del Cerebro</span></div>
+          <p class="muted" style="font-size:13.5px;margin:0 0 10px">La asignación sale de las áreas del Cerebro (fase 1): quien ve el área Ventas puede preguntarle. Se puede añadir o quitar a una persona a mano.</p>
+          <div class="table-wrap"><table>
+            <tr><th>Persona</th><th>Rol en Chok</th><th>Áreas</th><th>Acceso</th><th></th></tr>
+            <tr><td>Carlos <span class="sub">owner</span></td><td>owner</td><td>todas</td><td><span class="badge ok">ve todo</span></td><td></td></tr>
+            <tr><td>Natalia <span class="sub">member</span></td><td>member</td><td>Mercadeo, Ventas</td><td><span class="badge ok">por área Ventas</span></td><td><button class="btn small" data-toast="Maqueta: quitaría el acceso manual">Quitar</button></td></tr>
+            <tr><td>Andrés <span class="sub">member</span></td><td>member</td><td>Inventario</td><td><span class="badge neutral">sin acceso</span></td><td><button class="btn small" data-toast="Maqueta: añadiría acceso manual, auditado">Dar acceso</button></td></tr>
+          </table></div>
+        </div>
+      </div>
+
+      <div data-ipanel="consumo" hidden>
+        <div class="grid grid-4" style="margin-bottom:14px">
+          <div class="card card-dark metric" style="margin:0"><div class="l">Mes</div><div class="n">14,20 <small>USD</small></div><div class="f">tope 40 · 36 %</div></div>
+          <div class="card metric" style="margin:0"><div class="l">Turnos</div><div class="n">312</div><div class="f">kind agente-tarea</div></div>
+          <div class="card metric" style="margin:0"><div class="l">Tokens</div><div class="n">4,1 <small>M</small></div><div class="f">3,6 M entrada · 0,5 M salida</div></div>
+          <div class="card metric" style="margin:0"><div class="l">Llamadas MCP</div><div class="n">640</div><div class="f">cobradas en hypnic-mcp</div></div>
+        </div>
+        <div class="card">
+          <h2>De dónde sale el costo</h2>
+          <div class="table-wrap"><table>
+            <tr><th>Concepto</th><th>Medida</th><th class="num">USD</th><th>Fuente</th></tr>
+            <tr><td>Tokens del modelo</td><td>4,1 M</td><td class="num">9,40</td><td class="mm">usage_events · meta.modelo</td></tr>
+            <tr><td>Cómputo Agent Runtime</td><td>31 vCPU-h · 62 GiB-h</td><td class="num">3,20</td><td class="mm">export de facturación GCP · etiqueta hypnic-instancia</td></tr>
+            <tr><td>Llamadas MCP</td><td>640</td><td class="num">1,60</td><td class="mm">hypnic-mcp · consumidor</td></tr>
+            <tr><td><b>Total</b></td><td></td><td class="num"><b>14,20</b></td><td></td></tr>
+          </table></div>
+        </div>
+      </div>
+
+      <div data-ipanel="auditoria" hidden>
+        <div class="card">
+          <h2>Auditoría de la instancia</h2>
+          <ul class="timeline">
+            <li><span class="mono">27 nov 09:12</span><span>Mar cambió el tope diario de 1,50 a 2,00 USD</span></li>
+            <li><span class="mono">24 nov 16:40</span><span>Juan actualizó la instancia de v2 a v3 (probada 12/12)</span></li>
+            <li><span class="mono">18 nov 11:05</span><span>Mar subió reglas-chok.md v2 (harness)</span></li>
+            <li><span class="mono">7 nov 10:30</span><span><b>Mar (dueña)</b> activó la instancia · primera activación en Chok Chok</span></li>
+            <li><span class="mono">5 nov 15:02</span><span>Juan creó la instancia desde la solicitud S-0007</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AGENTE MADRE ================= -->
+    <section class="vista" id="v-madre" hidden>
+      <div class="card">
+        <div class="ch"><h2>Agente madre por empresa</h2><div class="empresa-sel" id="madre-sel"></div></div>
+        <p class="muted" style="font-size:13.5px;margin:0">Uno por marca. Nace cuando se enciende el Cerebro. Filtra quién ve qué, enruta, comanda a los demás agentes y conversa con el superadmin del cliente. Es la única instancia que ve los sistemas de empresa.</p>
+      </div>
+      <div class="grid grid-2">
+        <div>
+          <div class="card">
+            <div class="ch"><h2 id="madre-nombre">Madre · Chok Chok</h2><span class="badge ok">activo</span></div>
+            <dl class="kv">
+              <dt>Plantilla</dt><dd>Agente madre <span class="badge ink">estructural</span> · v2</dd>
+              <dt>Vive en</dt><dd>Cerebro de Chok Chok · <span class="mono">cerebro.hypnic.us/chok-chok</span> <a class="btn link small" href="#madre" data-toast="Maqueta: abriría el cerebro del cliente en otra pestaña">abrir</a></dd>
+              <dt>Habla con</dt><dd>Carlos (superadmin del cliente). Los líderes le preguntan por su área.</dd>
+              <dt>Comanda</dt><dd>Analista de ventas · Analista de inventario · (solicitado) Contabilidad</dd>
+              <dt>Sistemas de empresa</dt><dd><span class="badge ok">Siigo</span> <span class="badge ok">Shopify</span> <span class="badge ok">Cerebro</span> <span class="badge neutral">Alegra · no conectado</span></dd>
+            </dl>
+          </div>
+          <div class="card">
+            <h2>Qué hace solo y qué pide</h2>
+            <div class="table-wrap"><table class="matriz">
+              <tr><th>Acción</th><th>Solo</th><th>Con OK de HYPNIC</th><th>Nunca</th></tr>
+              <tr><td>Responder y enrutar preguntas por área</td><td class="si">sí</td><td></td><td></td></tr>
+              <tr><td>Proponer usuarios y áreas (plantillas por área)</td><td class="si">sí</td><td></td><td></td></tr>
+              <tr><td>Redactar una solicitud de agente nuevo</td><td class="si">sí</td><td></td><td></td></tr>
+              <tr><td>Crear o activar una instancia</td><td></td><td class="ok-h">solicitud</td><td></td></tr>
+              <tr><td>Encender un MCP o un recurso</td><td></td><td class="ok-h">solicitud</td><td></td></tr>
+              <tr><td>Escribir en sistemas de empresa</td><td></td><td class="ok-h">confirmación humana por acción</td><td></td></tr>
+              <tr><td>Crear un agente estructural (madre, creador)</td><td></td><td></td><td class="no">bloqueado en backend</td></tr>
+              <tr><td>Pagar o mover plata</td><td></td><td></td><td class="no">bloqueado</td></tr>
+            </table></div>
+          </div>
+        </div>
+        <div>
+          <div class="card card-lima">
+            <h2 style="color:inherit">Setup guiado (orden acordado)</h2>
+            <ul class="estado-lista">
+              <li><span class="dot ok"></span><span>Warehouse de Chok listo y cerebro encendido</span></li>
+              <li><span class="dot ok"></span><span>Madre activado · 7 nov</span></li>
+              <li><span class="dot ok"></span><span>Áreas creadas: Gerencia, Ventas, Mercadeo, Inventario</span></li>
+              <li><span class="dot ok"></span><span>Personas asignadas: 3 de 4</span></li>
+              <li><span class="dot warn"></span><span>Instancias por área: 2 activas, 1 solicitada</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2>Últimas solicitudes que redactó</h2>
+            <ul class="timeline">
+              <li><span class="mono">26 nov</span><span>S-0012 · «Natalia pide un informe semanal de pauta vs ventas» → cotizada 2 h</span></li>
+              <li><span class="mono">20 nov</span><span>S-0010 · «Carlos quiere ver cartera por tienda» → evaluada, falta Alegra</span></li>
+              <li><span class="mono">3 nov</span><span>S-0007 · «Analista de ventas» → activa</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2>Versión y harness del madre</h2>
+            <dl class="kv"><dt>Versión</dt><dd>v2 · publicada 20 nov</dd><dt>Harness de Chok</dt><dd>reglas-chok.md v2 · politica-acceso.yaml v1</dd><dt>Modelo</dt><dd>gemini-3.1-pro-preview · razonamiento alto</dd></dl>
+            <div class="row" style="margin-top:10px"><button class="btn small" data-toast="Maqueta: abriría la ficha de instancia del madre con las mismas pestañas">Editar en el garden</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SOLICITUDES ================= -->
+    <section class="vista" id="v-solicitudes" hidden>
+      <div class="card">
+        <div class="ch"><h2>Solicitudes del cliente</h2><div class="pills small" style="margin:0"><button class="pill active">Abiertas (3)</button><button class="pill">Cargadas</button><button class="pill">Rechazadas</button></div></div>
+        <p class="muted" style="font-size:13.5px;margin:0 0 10px">El cliente pide (a su agente madre o a HYPNIC). HYPNIC evalúa, cotiza en horas, carga y activa. Nada se crea solo.</p>
+        <div class="table-wrap"><table>
+          <tr><th>#</th><th>Empresa</th><th>Pide</th><th>Borrador del madre</th><th>Estado</th><th>Horas</th><th></th></tr>
+          <tr class="clik" data-sol="12"><td class="mono">S-0012</td><td>Chok Chok</td><td>Informe semanal de pauta vs ventas<span class="sub">Natalia · 26 nov</span></td><td>Mercadeo · informe semanal v2 + Meta Ads lectura</td><td><span class="badge warn">cotizada</span></td><td class="num">2</td><td><button class="btn small primary" data-toast="Maqueta: marcaría «aprobada por el cliente» y pasaría a cargar">Cargar</button></td></tr>
+          <tr class="clik" data-sol="10"><td class="mono">S-0010</td><td>Chok Chok</td><td>Cartera por tienda<span class="sub">Carlos · 20 nov</span></td><td>Analista de contabilidad v2 · necesita Alegra</td><td><span class="badge neutral">evaluada</span></td><td class="num">—</td><td><button class="btn small" data-toast="Maqueta: pediría a Mar la cotización">Cotizar</button></td></tr>
+          <tr class="clik" data-sol="11"><td class="mono">S-0011</td><td>Pants</td><td>Que el SAC avise por Slack al equipo<span class="sub">María · 22 nov</span></td><td>No es un agente: automatización del SAC (canal nuevo)</td><td><span class="badge neutral">nueva</span></td><td class="num">—</td><td><button class="btn small" data-toast="Maqueta: abriría la evaluación">Evaluar</button></td></tr>
+        </table></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="ch"><h2>S-0012 · Chok Chok</h2><span class="badge warn">cotizada · 2 h</span></div>
+          <h3>Lo que pidió Natalia (en el cerebro)</h3>
+          <p style="margin:0 0 10px;font-size:14px">«Quiero cada lunes un informe de cuánto gastamos en pauta y cuánto vendimos, por campaña.»</p>
+          <h3>Borrador que redactó el madre</h3>
+          <dl class="kv">
+            <dt>Plantilla</dt><dd>Mercadeo · informe semanal (v2)</dd>
+            <dt>Área</dt><dd>Mercadeo</dd>
+            <dt>Datos</dt><dd>cerebro · ventas_importe_v1 · Meta Ads (lectura, campañas)</dd>
+            <dt>Ronda</dt><dd>lunes 7:00 · entrega por correo a Natalia</dd>
+            <dt>Riesgo</dt><dd>Meta Ads no está seleccionado en el canal mcp de Chok</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <h2>Evaluación de HYPNIC</h2>
+          <div class="row">
+            <label class="field" style="flex:1 1 160px">Plantilla<select><option>Mercadeo · informe semanal (v2)</option><option>A la medida</option></select></label>
+            <label class="field" style="flex:1 1 120px">Horas<input value="2"></label>
+            <label class="field" style="flex:1 1 160px">Quién aprueba<select><option>HYPNIC (plantilla publicada)</option><option>Dueño (toca dinero)</option></select></label>
+          </div>
+          <label class="field" style="margin-top:10px">Nota para el cliente<textarea style="min-height:70px">Se activa con la plantilla de mercadeo. Hay que encender Meta Ads en lectura para Chok. 2 horas de soporte incluidas en la mensualidad.</textarea></label>
+          <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: enviaría la cotización al madre para que se la muestre a Natalia">Enviar cotización</button><button class="btn danger" data-toast="Maqueta: rechazaría con motivo">Rechazar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GOBERNANZA ================= -->
+    <section class="vista" id="v-gobernanza" hidden>
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Quién aprueba cada paso</h2>
+          <div class="table-wrap"><table>
+            <tr><th>Paso</th><th>Lo dispara</th><th>Lo aprueba</th></tr>
+            <tr><td>Pedir</td><td>superadmin del cliente (vía madre) o HYPNIC</td><td>—</td></tr>
+            <tr><td>Evaluar y cotizar</td><td>HYPNIC</td><td>HYPNIC</td></tr>
+            <tr><td>Crear plantilla nueva</td><td>HYPNIC</td><td><b>Dueño</b> (Juan o Mar)</td></tr>
+            <tr><td>Publicar versión</td><td>HYPNIC</td><td>HYPNIC · dueño si es estructural</td></tr>
+            <tr><td>Instanciar plantilla publicada</td><td>HYPNIC</td><td>HYPNIC</td></tr>
+            <tr><td>Activar (primera vez por empresa)</td><td>HYPNIC</td><td><b>Dueño</b> (dinero real)</td></tr>
+            <tr><td>Activar (siguientes)</td><td>HYPNIC</td><td>HYPNIC</td></tr>
+            <tr><td>Encender MCP de clase empresa</td><td>HYPNIC</td><td><b>Dueño</b> + solo para rol madre o cerebro</td></tr>
+            <tr><td>Tool de escritura o gasto</td><td>agente</td><td>persona del cliente, por acción</td></tr>
+            <tr><td>Pausar / retirar</td><td>HYPNIC o automático al tope</td><td>—</td></tr>
+          </table></div>
+        </div>
+        <div>
+          <div class="card card-dark">
+            <h2 style="color:inherit">Reglas duras (viven en el backend, no en un prompt)</h2>
+            <ul class="estado-lista">
+              <li><span class="dot lima"></span><span>Ninguna ruta de solicitud ni del madre puede crear una plantilla <b>estructural</b>. CHECK en base de datos y 403 en el router.</span></li>
+              <li><span class="dot lima"></span><span>Recursos de clase <b>empresa</b> (ERP, contabilidad, lago completo) solo seleccionables para rol madre o cerebro.</span></li>
+              <li><span class="dot lima"></span><span>Escritura y gasto nacen apagados y exigen confirmación humana por llamada.</span></li>
+              <li><span class="dot lima"></span><span>Un agente nunca lee storage ni Secret Manager por su cuenta: recibe archivos resueltos y credenciales por el corredor.</span></li>
+              <li><span class="dot lima"></span><span>Nada editado en la consola de Google es versión. La versión es la fila de platform + el SHA del contenido.</span></li>
+              <li><span class="dot lima"></span><span>Tope diario por instancia y mensual por empresa: al tope, pausa y aviso. Nunca «se nos crece por detrás».</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2>Políticas por defecto</h2>
+            <div class="row">
+              <label class="field" style="flex:1 1 150px">Tope diario / instancia (USD)<input value="2.00"></label>
+              <label class="field" style="flex:1 1 150px">Tope mensual / empresa (USD)<input value="40.00"></label>
+              <label class="field" style="flex:1 1 150px">Llamadas MCP / día<input value="400"></label>
+            </div>
+            <h3>Runtimes habilitados</h3>
+            <div class="row"><label class="sw"><input type="checkbox" checked> Agent Runtime (ADK) · hypnic-garden-01</label><label class="sw"><input type="checkbox" checked> hypnic-agents (conversacional)</label><label class="sw"><input type="checkbox" disabled> Managed Agents API (Preview, apagado)</label></div>
+            <h3>Clases de MCP</h3>
+            <div class="table-wrap"><table>
+              <tr><th>Clase</th><th>Ejemplos</th><th>Quién puede tenerlo</th></tr>
+              <tr><td>empresa · sistema</td><td>Siigo, Alegra, ERP, lago completo</td><td>madre, cerebro</td></tr>
+              <tr><td>comercio</td><td>Shopify, VTEX, Meta Ads</td><td>cualquier instancia, por recurso</td></tr>
+              <tr><td>cerebro · métricas</td><td>cifras certificadas de hypnic-data</td><td>cualquier instancia, por métrica</td></tr>
+              <tr><td>tercero · gasto</td><td>Higgsfield</td><td>con confirmación humana</td></tr>
+              <tr><td>personal</td><td>correo, calendario</td><td>la persona y sus agentes (pendiente)</td></tr>
+            </table></div>
+            <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: guardaría las políticas con auditoría">Guardar políticas</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Roles</h2>
+        <div class="table-wrap"><table class="matriz">
+          <tr><th>Puede</th><th>Superadmin HYPNIC</th><th>Superadmin del cliente</th><th>Líder de área</th><th>Agente madre</th></tr>
+          <tr><td>Ver el Agent Garden (admin)</td><td class="si">sí</td><td class="no">no</td><td class="no">no</td><td class="no">no</td></tr>
+          <tr><td>Pedir un agente</td><td class="si">sí</td><td class="si">sí (vía madre)</td><td class="si">sí (vía madre)</td><td class="si">redacta</td></tr>
+          <tr><td>Crear, instanciar, activar</td><td class="si">sí</td><td class="no">no</td><td class="no">no</td><td class="no">no</td></tr>
+          <tr><td>Hablar con el madre</td><td class="si">sí</td><td class="si">sí</td><td class="si">por su área</td><td>—</td></tr>
+          <tr><td>Ver consumo</td><td class="si">todo</td><td class="si">su empresa</td><td class="no">no</td><td class="no">no</td></tr>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ================= CONSUMO ================= -->
+    <section class="vista" id="v-consumo" hidden>
+      <div class="grid grid-4" style="margin-bottom:18px">
+        <div class="card card-lima metric" style="margin:0"><div class="l">Consumo del mes</div><div class="n">87,40 <small>USD</small></div><div class="f">6 instancias · 3 empresas</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Cobrado al cliente</div><div class="n">210 <small>USD</small></div><div class="f">3 instancias con tarifa agente-mes</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Margen</div><div class="n">58 <small>%</small></div><div class="f">meta ≥ 50 %</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Avisos de tope</div><div class="n">1</div><div class="f">Pants · SAC · 80 % del diario</div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Por empresa e instancia</h2><div class="pills small" style="margin:0"><button class="pill active">Noviembre</button><button class="pill">Octubre</button></div></div>
+        <div class="table-wrap"><table>
+          <tr><th>Empresa</th><th>Instancia</th><th>Runtime</th><th class="num">Turnos</th><th class="num">Tokens</th><th class="num">Costo USD</th><th>Tope mensual</th><th class="num">Precio</th></tr>
+          <tr><td>Chok Chok</td><td>Madre</td><td>Agent Runtime</td><td class="num">98</td><td class="num">2,2 M</td><td class="num">9,10</td><td><div class="gauge"><i style="width:23%"></i></div></td><td class="num">incluido</td></tr>
+          <tr><td>Chok Chok</td><td>Analista de ventas</td><td>Agent Runtime</td><td class="num">312</td><td class="num">4,1 M</td><td class="num">14,20</td><td><div class="gauge"><i style="width:36%"></i></div></td><td class="num">60</td></tr>
+          <tr><td>Chok Chok</td><td>Analista de inventario</td><td>Agent Runtime</td><td class="num">140</td><td class="num">1,8 M</td><td class="num">6,30</td><td><div class="gauge"><i style="width:16%"></i></div></td><td class="num">60</td></tr>
+          <tr><td>Pants</td><td>SAC WhatsApp</td><td>hypnic-agents</td><td class="num">2 140</td><td class="num">12,6 M</td><td class="num">48,90</td><td><div class="gauge"><i class="warn" style="width:81%"></i></div></td><td class="num">90</td></tr>
+          <tr><td>Pants</td><td>Madre</td><td>Agent Runtime</td><td class="num">41</td><td class="num">0,9 M</td><td class="num">4,10</td><td><div class="gauge"><i style="width:10%"></i></div></td><td class="num">incluido</td></tr>
+          <tr><td>Electro Feria</td><td>Analista de ventas (probando)</td><td>Agent Runtime</td><td class="num">22</td><td class="num">0,6 M</td><td class="num">4,80</td><td><div class="gauge"><i style="width:12%"></i></div></td><td class="num">—</td></tr>
+        </table></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Qué se mide desde el día uno</h2>
+          <ul class="estado-lista">
+            <li><span class="dot ok"></span><span>Turnos y tareas por instancia (<span class="mono">usage_events</span>, kind agente-turno / agente-tarea / agente-ronda)</span></li>
+            <li><span class="dot ok"></span><span>Tokens de entrada y salida y modelo usado</span></li>
+            <li><span class="dot ok"></span><span>vCPU-h y GiB-h de Agent Runtime por etiqueta de instancia</span></li>
+            <li><span class="dot ok"></span><span>Llamadas MCP por consumidor (ya se cobran en hypnic-mcp)</span></li>
+            <li><span class="dot ok"></span><span>Horas de soporte por solicitud</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Precio por agente al mes</h2>
+          <p class="muted" style="font-size:13.5px;margin:0 0 10px">Tarifa fija por instancia activa más uso, con el margen objetivo del desarrollo. Se fija cuando haya un mes de datos del piloto.</p>
+          <div class="row"><label class="field" style="flex:1 1 150px">Analista (lectura)<input value="60 USD / mes"></label><label class="field" style="flex:1 1 150px">Conversacional (SAC)<input value="90 USD / mes"></label><label class="field" style="flex:1 1 150px">Madre<input value="incluido en el cerebro"></label></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AUDITORÍA ================= -->
+    <section class="vista" id="v-auditoria" hidden>
+      <div class="card">
+        <div class="ch"><h2>Auditoría del garden</h2><div class="row"><input placeholder="Buscar por empresa, instancia o persona" style="max-width:320px"></div></div>
+        <div class="table-wrap"><table>
+          <tr><th>Cuándo</th><th>Quién</th><th>Qué</th><th>Empresa</th><th>Antes → después</th></tr>
+          <tr><td class="mono">27 nov 09:12</td><td>maker@hypnic.us</td><td>instancia.tope</td><td>Chok Chok</td><td>1,50 → 2,00 USD/día</td></tr>
+          <tr><td class="mono">26 nov 18:20</td><td>madre · Chok Chok</td><td>solicitud.crear</td><td>Chok Chok</td><td>S-0012 (pedido de Natalia)</td></tr>
+          <tr><td class="mono">24 nov 16:40</td><td>juan@hypnic.us</td><td>instancia.actualizar</td><td>Chok Chok</td><td>v2 → v3</td></tr>
+          <tr><td class="mono">24 nov 10:02</td><td>maker@hypnic.us</td><td>plantilla.publicar</td><td>—</td><td>Analista de ventas v3</td></tr>
+          <tr><td class="mono">22 nov 08:15</td><td>sistema</td><td>instancia.aviso_tope</td><td>Pants</td><td>SAC · 80 % del tope diario</td></tr>
+          <tr><td class="mono">20 nov 12:30</td><td>juan@hypnic.us</td><td>mcp.seleccion</td><td>Chok Chok</td><td>madre: Siigo canal mcp apagado → encendido (dueño)</td></tr>
+          <tr><td class="mono">7 nov 10:30</td><td>maker@hypnic.us</td><td>instancia.activar</td><td>Chok Chok</td><td>Analista de ventas · primera activación (dueña)</td></tr>
+        </table></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+  // ---------- datos de ejemplo ----------
+  const AREAS = ["Todas", "Gerencia", "Ventas", "Mercadeo", "Contabilidad y finanzas", "Inventario y logística", "Servicio al cliente", "Compras", "Estructurales"];
+  const PLANTILLAS = [
+    { id: "madre", nombre: "Agente madre", area: "Estructurales", tipo: "estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v2", estado: "publicada", inst: 2, desc: "Uno por marca. Filtra, enruta, comanda y redacta solicitudes. Nace con el cerebro.", mcp: ["sistemas de empresa", "cerebro"] },
+    { id: "ventas", nombre: "Analista de ventas", area: "Ventas", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v3", estado: "publicada", inst: 2, desc: "Responde preguntas de ventas con cifras certificadas del cerebro, con corte y nivel.", mcp: ["cerebro · ventas", "comercio (lectura)"] },
+    { id: "inventario", nombre: "Analista de inventario", area: "Inventario y logística", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v1", estado: "publicada", inst: 1, desc: "Existencias por bodega, cobertura y ventas sin stock. Alertas de quiebre.", mcp: ["cerebro · existencias"] },
+    { id: "conta", nombre: "Analista de contabilidad", area: "Contabilidad y finanzas", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v2", estado: "publicada", inst: 0, desc: "Cartera, caja y egresos desde el cerebro. No toca el ERP: se lo pide al madre.", mcp: ["cerebro · finanzas"] },
+    { id: "mkt", nombre: "Mercadeo · informe semanal", area: "Mercadeo", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v2", estado: "publicada", inst: 0, desc: "Ronda semanal: pauta vs ventas por campaña, entregado por correo al líder.", mcp: ["cerebro · ventas", "Meta Ads (lectura)"] },
+    { id: "sac", nombre: "SAC por WhatsApp", area: "Servicio al cliente", tipo: "no estructural", alcance: "público", runtime: "hypnic-agents", v: "v1", estado: "publicada", inst: 1, desc: "Ventas y servicio al cliente por WhatsApp, multimarca. Capacidades de comercio opcionales.", mcp: ["comercio (lectura y escritura con OK)"] },
+    { id: "compras", nombre: "Compras · alertas de reposición", area: "Compras", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v1", estado: "publicada", inst: 0, desc: "Avisa qué reponer según cobertura y ventas; propone orden, no la crea.", mcp: ["cerebro · existencias"] },
+    { id: "gerencia", nombre: "Resumen de gerencia", area: "Gerencia", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v1", estado: "publicada", inst: 0, desc: "Cierre del día y de la semana para el dueño: ventas, caja, pendientes.", mcp: ["cerebro · todas las métricas del área"] },
+    { id: "kbeauty", nombre: "Scouting de productos (Chok)", area: "Compras", tipo: "no estructural", alcance: "empresa", runtime: "Agent Runtime", v: "v1", estado: "borrador", inst: 0, desc: "A la medida de Chok Chok: matriz de 10 criterios para elegir productos nuevos.", mcp: ["cerebro · ventas", "documentos (storage)"] },
+  ];
+  const EMPRESAS = ["Chok Chok", "Pants", "Electro Feria"];
+  const INSTANCIAS = {
+    "Chok Chok": [
+      { n: "Madre · Chok Chok", tpl: "Agente madre v2", rt: "Agent Runtime", est: "activa", mcp: "Siigo · Shopify · Cerebro", usd: "9,10", tope: 23, cls: "" },
+      { n: "Analista de ventas", tpl: "Analista de ventas v3", rt: "Agent Runtime", est: "activa", mcp: "Cerebro (2) · Shopify (1)", usd: "14,20", tope: 36, cls: "", ficha: true },
+      { n: "Analista de inventario", tpl: "Analista de inventario v1", rt: "Agent Runtime", est: "activa", mcp: "Cerebro (3)", usd: "6,30", tope: 16, cls: "" },
+      { n: "Analista de contabilidad", tpl: "Analista de contabilidad v2", rt: "Agent Runtime", est: "solicitada", mcp: "pendiente Alegra", usd: "—", tope: 0, cls: "" },
+    ],
+    "Pants": [
+      { n: "Madre · Pants", tpl: "Agente madre v2", rt: "Agent Runtime", est: "activa", mcp: "Shopify · Cerebro", usd: "4,10", tope: 10, cls: "" },
+      { n: "SAC WhatsApp", tpl: "SAC por WhatsApp v1", rt: "hypnic-agents", est: "activa", mcp: "comercio (13 tools, 5 de escritura apagadas)", usd: "48,90", tope: 81, cls: "warn" },
+    ],
+    "Electro Feria": [
+      { n: "Analista de ventas", tpl: "Analista de ventas v3", rt: "Agent Runtime", est: "probando", mcp: "Cerebro (2)", usd: "4,80", tope: 12, cls: "" },
+      { n: "Madre · Electro Feria", tpl: "Agente madre v2", rt: "Agent Runtime", est: "creada", mcp: "sin selección", usd: "—", tope: 0, cls: "" },
+    ],
+  };
+  const BADGE = { activa: "ok", probando: "warn", creada: "neutral", solicitada: "neutral", pausada: "off", retirada: "off" };
+
+  // ---------- toasts ----------
+  let tt;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2600); }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-toast]"); if (b) { e.preventDefault(); toast(b.dataset.toast); } });
+
+  // ---------- catálogo ----------
+  let areaActiva = "Todas";
+  function pintaCatalogo() {
+    $("#filtro-area").innerHTML = AREAS.map((a) => `<button class="chip ${a === areaActiva ? "active" : ""}" data-area="${a}">${a}</button>`).join("");
+    const lista = PLANTILLAS.filter((p) => areaActiva === "Todas" || p.area === areaActiva);
+    $("#catalogo-grid").innerHTML = lista.map((p) => `
+      <article class="tpl ${p.tipo === "estructural" ? "estructural" : ""}" data-tpl="${p.id}" tabindex="0" role="button">
+        <div class="area">${p.area}</div>
+        <h4>${p.nombre}</h4>
+        <div class="desc">${p.desc}</div>
+        <div class="chips">${p.mcp.map((m) => `<span class="chip">${m}</span>`).join("")}</div>
+        <div class="meta">
+          <span class="badge ${p.estado === "publicada" ? "ok" : "warn"}">${p.v} ${p.estado}</span>
+          <span class="badge ${p.tipo === "estructural" ? "ink" : "neutral"}">${p.tipo}</span>
+          <span class="badge neutral">${p.runtime}</span>
+          <span class="badge neutral">${p.inst} inst.</span>
+        </div>
+      </article>`).join("") || `<p class="muted">Sin plantillas en este departamento. Crea una con «Nuevo agente».</p>`;
+  }
+  $("#filtro-area").addEventListener("click", (e) => { const c = e.target.closest("[data-area]"); if (c) { areaActiva = c.dataset.area; pintaCatalogo(); } });
+  $("#catalogo-grid").addEventListener("click", (e) => { const a = e.target.closest("[data-tpl]"); if (a) abrePlantilla(a.dataset.tpl); });
+  $("#catalogo-grid").addEventListener("keydown", (e) => { const a = e.target.closest("[data-tpl]"); if (a && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrePlantilla(a.dataset.tpl); } });
+  function abrePlantilla(id) { const p = PLANTILLAS.find((x) => x.id === id); if (!p) return; $("#tpl-nombre").textContent = p.nombre; $("#tpl-area").textContent = p.area; location.hash = "plantilla"; }
+
+  // ---------- asistente nuevo agente ----------
+  const PASOS = ["Departamento", "Base", "Instrucciones y modelo", "Datos y MCP", "Skills y harness", "Gobernanza", "Revisar"];
+  let paso = 0;
+  const nuevo = { dep: "Contabilidad y finanzas", nombre: "Analista de cartera", base: "Genérica de HYPNIC", modelo: "gemini-3.8-flash", runtime: "Agent Runtime (ADK)", datos: "cerebro · cartera_v1, cobros_v1", mcpEmpresa: "bloqueado (clase empresa)", skills: "comparar-periodos, aviso-vencidos", harness: "reglas.md + limites.yaml", aprueba: "Dueño (plantilla nueva)", tope: "2 USD/día · 40 USD/mes", alcance: "empresa" };
+  const cuerpos = [
+    () => `<h2>1 · ¿Para qué departamento y para qué sirve?</h2>
+      <div class="row"><label class="field" style="flex:1 1 220px">Departamento<select id="n-dep">${AREAS.slice(1, 8).map((a) => `<option ${a === nuevo.dep ? "selected" : ""}>${a}</option>`).join("")}</select></label>
+      <label class="field" style="flex:1 1 220px">Nombre del agente<input id="n-nombre" value="${nuevo.nombre}"></label></div>
+      <label class="field" style="margin-top:12px">Qué hace, en una frase (lo lee el cliente)<textarea style="min-height:70px">Responde cuánto nos deben, quién está vencido y qué cobrar primero, con cifras certificadas del cerebro.</textarea></label>
+      <h3>Alcance</h3><div class="opc">
+        <label><input type="radio" name="alc" checked><b>De la empresa</b><span class="mm">lo usan las personas de un área</span></label>
+        <label><input type="radio" name="alc"><b>De cara al público</b><span class="mm">atiende clientes finales (WhatsApp, web)</span></label>
+        <label><input type="radio" name="alc" disabled><b>Estructural</b><span class="mm">solo HYPNIC, fuera de este asistente</span></label></div>`,
+    () => `<h2>2 · ¿De qué parte?</h2><div class="opc">
+        <label><input type="radio" name="base" checked><b>Genérica de HYPNIC</b><span class="mm">plantilla base del departamento (recomendado)</span></label>
+        <label><input type="radio" name="base"><b>Copiar una plantilla existente</b><span class="mm">p. ej. Analista de ventas v3</span></label>
+        <label><input type="radio" name="base"><b>Plantilla de Google Agent Garden</b><span class="mm">se copia el código de arranque a nuestro repo</span></label>
+        <label><input type="radio" name="base"><b>A la medida</b><span class="mm">instrucciones desde cero; cotiza más horas</span></label></div>
+      <h3>Runtime</h3><div class="opc">
+        <label><input type="radio" name="rt" checked><b>Agent Runtime (ADK)</b><span class="mm">tareas y análisis; un recurso por instancia</span></label>
+        <label><input type="radio" name="rt"><b>hypnic-agents</b><span class="mm">conversacional por canal (WhatsApp)</span></label>
+        <label><input type="radio" name="rt" disabled><b>Managed Agents API</b><span class="mm">Preview · apagado en gobernanza</span></label></div>`,
+    () => `<h2>3 · Instrucciones y modelo</h2>
+      <label class="field">Instrucciones (usa {{empresa}}, {{reglas}} y {{voz}}; el harness de cada empresa se inyecta al instanciar)<textarea>Eres el analista de cartera de {{empresa}}. Respondes con cifras certificadas del cerebro, siempre con corte y nivel. Si un dato no está, lo dices. No ejecutas cobros ni escribes en el ERP: eso se lo pides al agente madre. {{reglas}} {{voz}}</textarea></label>
+      <div class="row" style="margin-top:12px">
+        <label class="field" style="flex:1 1 180px">Modelo<select><option>gemini-3.8-flash</option><option>gemini-3.1-pro-preview</option><option>claude-sonnet (Vertex)</option></select></label>
+        <label class="field" style="flex:1 1 140px">Razonamiento<select><option>medio</option><option>bajo</option><option>alto</option></select></label>
+        <label class="field" style="flex:1 1 120px">Temperatura<input value="0.2"></label>
+        <label class="field" style="flex:1 1 140px">Salida máx. (tokens)<input value="4096"></label></div>
+      <p class="mm" style="font-size:12.5px;margin:10px 0 0">El modelo va detrás del puerto ModelProvider: cambiarlo no toca el dominio ni las instancias.</p>`,
+    () => `<h2>4 · Datos y MCP que necesita</h2>
+      <p class="muted" style="font-size:13.5px;margin:0 0 8px">Se declara lo que la plantilla <b>necesita</b>. Lo que cada empresa <b>permite</b> se decide instancia por instancia en Datos y MCP.</p>
+      <div class="sel-canal"><div class="sel-canal-cab"><h4>Cerebro (métricas certificadas)</h4><span class="chip">clase cerebro</span></div>
+        <fieldset class="sel-grupo"><legend>Requeridas</legend>
+          <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> cartera_v1</div>
+          <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> cobros_v1</div>
+          <div class="sel-item"><label class="sw"><input type="checkbox"></label> ventas_importe_v1 <span class="mm">opcional</span></div></fieldset></div>
+      <div class="sel-canal"><div class="sel-canal-cab"><h4>Siigo / Alegra (ERP)</h4><span class="chip">clase empresa</span><label class="sw sel-switch"><input type="checkbox" disabled> requerir</label></div>
+        <div class="sel-aviso">Un agente de departamento no recibe el ERP. Si necesita un dato que no está certificado en el cerebro, la plantilla declara «pedir al madre» y el madre responde desde el sistema.</div></div>
+      <div class="sel-canal"><div class="sel-canal-cab"><h4>Comercio (Shopify, VTEX)</h4><span class="chip">clase comercio</span></div>
+        <fieldset class="sel-grupo"><legend>Opcionales</legend>
+          <div class="sel-item"><label class="sw"><input type="checkbox"></label> pedidos.listar (lectura)</div>
+          <div class="sel-item sel-bloqueado"><label class="sw"><input type="checkbox" disabled></label> escritura <span class="badge off">no en plantillas de análisis</span></div></fieldset></div>`,
+    () => `<h2>5 · Skills y harness base</h2>
+      <h3>Skills de la plantilla</h3><div class="chips"><span class="chip active">comparar-periodos</span><span class="chip active">aviso-vencidos</span><span class="chip">redactar-resumen-gerencia</span><span class="chip">explicar-variacion</span><button class="btn small" data-toast="Maqueta: subiría una skill nueva al repo de plantillas por PR">+ Nueva skill</button></div>
+      <h3>Harness base (se complementa por empresa)</h3>
+      <div class="table-wrap"><table><tr><th>Archivo</th><th>Qué fija</th></tr>
+        <tr><td class="mono">reglas.md</td><td>Voz HYPNIC, qué nunca decir, cómo citar corte y nivel</td></tr>
+        <tr><td class="mono">limites.yaml</td><td>Máximo 6 llamadas por respuesta · ventana máxima 365 días · sin SQL</td></tr>
+        <tr><td class="mono">prohibidas.json</td><td>Claves que la puerta rechaza (edad, notas, teléfono…)</td></tr></table></div>
+      <h3>Evaluación</h3><p class="muted" style="font-size:13.5px;margin:0">12 casos de evalset con respuesta esperada. Sin evalset no se publica.</p>`,
+    () => `<h2>6 · Gobernanza de la plantilla</h2>
+      <div class="row">
+        <label class="field" style="flex:1 1 200px">Quién aprueba instanciar<select><option>HYPNIC (superadmin)</option><option>Dueño</option></select></label>
+        <label class="field" style="flex:1 1 200px">Primera activación por empresa<select><option>Dueño (dinero real)</option></select></label></div>
+      <div class="row" style="margin-top:10px">
+        <label class="field" style="flex:1 1 150px">Tope diario (USD)<input value="2.00"></label>
+        <label class="field" style="flex:1 1 150px">Tope mensual por empresa (USD)<input value="40.00"></label>
+        <label class="field" style="flex:1 1 150px">Llamadas MCP / día<input value="400"></label></div>
+      <h3>Lo que el madre puede hacer con esta plantilla</h3>
+      <div class="row"><label class="sw"><input type="checkbox" checked> Pedirla en una solicitud</label><label class="sw"><input type="checkbox" checked> Enrutarle preguntas</label><label class="sw"><input type="checkbox" disabled> Activarla solo <span class="mm">(nunca)</span></label></div>
+      <div class="sel-ok" style="margin-top:12px">Candado: esta plantilla nace como <b>no estructural</b>. Ninguna solicitud ni agente puede cambiarlo; solo un dueño desde el catálogo.</div>`,
+    () => `<h2>7 · Revisar y crear</h2>
+      <p class="muted" style="font-size:13.5px">Se crea <b>${nuevo.nombre}</b> en ${nuevo.dep} con la versión 1 en borrador. Para que corra en una empresa hace falta: publicar v1 (HYPNIC), instanciarla, conectar sus datos, probarla y que un dueño apruebe la primera activación.</p>
+      <div class="sel-ok">Nada se despliega ni se cobra en este paso.</div>
+      <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: crearía la plantilla y v1 en borrador, con auditoría; volvería al catálogo">Crear plantilla (v1 borrador)</button><button class="btn secondary" data-toast="Maqueta: guardaría el asistente a medias">Guardar y seguir después</button></div>`,
+  ];
+  function pintaPasos() {
+    $("#pasos").innerHTML = PASOS.map((p, i) => `<button class="paso ${i === paso ? "activo" : i < paso ? "hecho" : ""}" data-paso="${i}">${i + 1} · ${p}</button>`).join("");
+    $("#paso-cuerpo").innerHTML = cuerpos[paso]();
+    $("#paso-atras").disabled = paso === 0;
+    $("#paso-sig").hidden = paso === PASOS.length - 1;
+    const r = [["Departamento", nuevo.dep], ["Nombre", nuevo.nombre], ["Alcance", nuevo.alcance], ["Base", nuevo.base], ["Runtime", nuevo.runtime], ["Modelo", nuevo.modelo], ["Datos", nuevo.datos], ["ERP", nuevo.mcpEmpresa], ["Skills", nuevo.skills], ["Harness", nuevo.harness], ["Aprueba", nuevo.aprueba], ["Topes", nuevo.tope]];
+    $("#resumen-dl").innerHTML = r.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+    const dep = $("#n-dep"), nom = $("#n-nombre");
+    if (dep) dep.addEventListener("change", () => { nuevo.dep = dep.value; pintaPasos(); });
+    if (nom) nom.addEventListener("input", () => { nuevo.nombre = nom.value; $("#resumen-dl dd:nth-of-type(2)").textContent = nom.value; });
+  }
+  $("#pasos").addEventListener("click", (e) => { const b = e.target.closest("[data-paso]"); if (b) { paso = +b.dataset.paso; pintaPasos(); } });
+  $("#paso-atras").addEventListener("click", () => { if (paso > 0) { paso--; pintaPasos(); } });
+  $("#paso-sig").addEventListener("click", () => { if (paso < PASOS.length - 1) { paso++; pintaPasos(); window.scrollTo({ top: 0, behavior: "smooth" }); } });
+
+  // ---------- instancias ----------
+  let empresa = "Chok Chok";
+  function pintaInstancias() {
+    $("#empresa-sel").innerHTML = EMPRESAS.map((e) => `<button class="pill ${e === empresa ? "active" : ""}" data-emp="${e}">${e}</button>`).join("");
+    const lista = INSTANCIAS[empresa];
+    const activas = lista.filter((i) => i.est === "activa").length;
+    const total = lista.reduce((s, i) => s + (parseFloat(i.usd.replace(",", ".")) || 0), 0).toFixed(2).replace(".", ",");
+    $("#inst-kpis").innerHTML = `
+      <div class="card card-lima metric" style="margin:0"><div class="l">Activas</div><div class="n">${activas} <small>de ${lista.length}</small></div><div class="f">${empresa}</div></div>
+      <div class="card metric" style="margin:0"><div class="l">Consumo del mes</div><div class="n">${total} <small>USD</small></div><div class="f">tope de empresa 40 USD</div></div>
+      <div class="card metric" style="margin:0"><div class="l">Cerebro</div><div class="n">${empresa === "Electro Feria" ? "apagado" : "encendido"}</div><div class="f">${empresa === "Electro Feria" ? "warehouse en carga" : "warehouse listo"}</div></div>
+      <div class="card metric" style="margin:0"><div class="l">Madre</div><div class="n">${lista.some((i) => i.n.startsWith("Madre") && i.est === "activa") ? "activo" : "pendiente"}</div><div class="f">una por marca</div></div>`;
+    $("#inst-tabla tbody").innerHTML = lista.map((i) => `
+      <tr class="clik" data-inst="${i.n}">
+        <td><b>${i.n}</b></td><td>${i.tpl}</td><td>${i.rt}</td>
+        <td><span class="badge ${BADGE[i.est] || "neutral"}">${i.est}</span></td>
+        <td>${i.mcp}</td><td class="num">${i.usd}</td>
+        <td>${i.tope ? `<div class="gauge"><i class="${i.cls}" style="width:${i.tope}%"></i></div>` : `<span class="mm">—</span>`}</td>
+        <td><button class="btn small">Abrir</button></td></tr>`).join("");
+  }
+  $("#empresa-sel").addEventListener("click", (e) => { const b = e.target.closest("[data-emp]"); if (b) { empresa = b.dataset.emp; pintaInstancias(); } });
+  $("#inst-tabla").addEventListener("click", (e) => { const r = e.target.closest("[data-inst]"); if (r) { $("#inst-nombre").textContent = `${r.dataset.inst} · ${empresa}`; location.hash = "instancia"; } });
+  $("#inst-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-itab]"); if (!b) return; $$("#inst-tabs .pill").forEach((p) => p.classList.toggle("active", p === b)); $$("[data-ipanel]").forEach((p) => { p.hidden = p.dataset.ipanel !== b.dataset.itab; }); });
+  $("#btn-conectar-mcp").addEventListener("click", () => { $("#conectar-mcp").hidden = false; $("#conectar-mcp").scrollIntoView({ behavior: "smooth", block: "start" }); });
+  $("#btn-cerrar-conectar").addEventListener("click", () => { $("#conectar-mcp").hidden = true; });
+
+  // ---------- madre ----------
+  $("#madre-sel").innerHTML = EMPRESAS.map((e, i) => `<button class="pill ${i === 0 ? "active" : ""}" data-madre="${e}">${e}</button>`).join("");
+  $("#madre-sel").addEventListener("click", (e) => { const b = e.target.closest("[data-madre]"); if (b) { $$("#madre-sel .pill").forEach((p) => p.classList.toggle("active", p === b)); $("#madre-nombre").textContent = `Madre · ${b.dataset.madre}`; } });
+
+  // ---------- router por hash ----------
+  const VISTAS = {
+    catalogo: { t: "Agent Garden", s: "Catálogo de agentes por departamento, una instancia por marca, y el agente madre de cada cerebro. Lo opera HYPNIC; el cliente pide.", sub: "catalogo", acc: `<a class="btn primary" href="#nuevo">+ Nuevo agente</a>` },
+    plantilla: { t: "Plantilla", s: "Versiones, lo que necesita y quién la usa. Se edita en un borrador nuevo; nunca sobre una versión publicada.", sub: "catalogo", acc: `<a class="btn secondary" href="#catalogo">← Catálogo</a> <a class="btn primary" href="#instancias">Instanciar en una empresa</a>` },
+    nuevo: { t: "Nuevo agente por departamento", s: "Siete pasos. Al final hay una plantilla con su versión 1 en borrador, sin instancias y sin despliegue.", sub: "catalogo", acc: `<a class="btn secondary" href="#catalogo">Cancelar</a>` },
+    instancias: { t: "Instancias por empresa", s: "Qué agentes tiene cada marca, en qué estado, con qué datos y cuánto consumen.", sub: "instancias", acc: `<a class="btn primary" href="#nuevo">+ Nuevo agente</a>` },
+    instancia: { t: "Instancia", s: "Resumen, datos y MCP, harness y skills, personas, consumo y auditoría de una instancia.", sub: "instancias", acc: `<a class="btn secondary" href="#instancias">← Instancias</a>` },
+    madre: { t: "Agente madre", s: "El agente estructural de cada marca: seguridad, ruteo, comando y solicitudes.", sub: "madre", acc: "" },
+    solicitudes: { t: "Solicitudes", s: "Lo que piden los clientes y lo que HYPNIC evalúa, cotiza y carga.", sub: "solicitudes", acc: "" },
+    gobernanza: { t: "Gobernanza", s: "Quién aprueba cada paso, reglas duras del backend, clases de MCP, topes y runtimes.", sub: "gobernanza", acc: "" },
+    consumo: { t: "Consumo y topes", s: "Costo real por instancia y por empresa, topes y base del precio por agente al mes.", sub: "consumo", acc: "" },
+    auditoria: { t: "Auditoría", s: "Quién creó, cambió, activó o apagó cada plantilla e instancia, con identidad real.", sub: "auditoria", acc: "" },
+  };
+  function ruta() {
+    const h = (location.hash || "#catalogo").slice(1);
+    const v = VISTAS[h] ? h : "catalogo";
+    $$(".vista").forEach((s) => { s.hidden = s.id !== `v-${v}`; });
+    $("#titulo").textContent = VISTAS[v].t;
+    $("#subtitulo").textContent = VISTAS[v].s;
+    $("#acciones").innerHTML = VISTAS[v].acc;
+    $$("#subnav .pill").forEach((p) => p.classList.toggle("active", p.dataset.sub === VISTAS[v].sub));
+    $$("#nav .nav-item").forEach((n) => n.classList.toggle("active", n.dataset.nav === "garden"));
+    if (v === "nuevo") pintaPasos();
+    if (v === "instancias") pintaInstancias();
+  }
+  $("#nav").addEventListener("click", (e) => { const a = e.target.closest("[data-nav='otra']"); if (a) { e.preventDefault(); toast("Esta sección no está en la maqueta: solo Second Brain › Agent Garden."); } });
+  window.addEventListener("hashchange", ruta);
+  pintaCatalogo();
+  ruta();
+})();
+</script>
