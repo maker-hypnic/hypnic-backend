@@ -206,6 +206,30 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--ink-inverse); padding: 10px 18px; border-radius: 999px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px); z-index: 20; }
 .toast.on { opacity: 1; }
 .vista[hidden] { display: none !important; }
+/* ---- explorador del harness ---- */
+.hx { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 860px) { .hx { grid-template-columns: minmax(0, 1fr); } }
+.capas { display: flex; flex-direction: column; gap: 6px; }
+.capa { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid transparent; cursor: pointer; font: inherit; color: var(--ink); text-align: left; width: 100%; }
+.capa small { display: block; color: var(--text-muted); font-size: 11.5px; }
+.capa.active { background: var(--surface); border-color: var(--ink); }
+.capa .n { font: 500 10.5px var(--font-mono); letter-spacing: .1em; color: var(--text-muted); }
+.arbol { list-style: none; margin: 0; padding: 0; font-family: var(--font-mono); font-size: 13px; }
+.arbol ul { list-style: none; margin: 2px 0 2px 14px; padding: 0 0 0 10px; border-left: 1px dashed var(--line); }
+.arbol li { margin: 1px 0; }
+.arbol .dir { color: var(--text-secondary); padding: 4px 6px; display: block; }
+.arbol button { font: inherit; background: none; border: none; color: var(--ink); cursor: pointer; padding: 4px 8px; border-radius: 8px; width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 8px; }
+.arbol button:hover { background: var(--surface-2); }
+.arbol button.active { background: var(--accent); color: var(--on-accent); }
+.arbol .tag { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.arbol button.active .tag { color: rgba(17,19,17,.6); }
+.editor { font: 400 13px/1.55 var(--font-mono); min-height: 320px; white-space: pre; tab-size: 2; }
+.capa-orden { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+.capa-orden .chip { cursor: default; }
+.efectivo td:first-child { font-family: var(--font-mono); font-size: 12.5px; }
+.mtx td, .mtx th { text-align: center; white-space: nowrap; }
+.mtx td:first-child, .mtx th:first-child { text-align: left; }
+.celda { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; }
 .api-hint { font: 400 11.5px var(--font-mono); color: var(--text-muted); margin: -6px 0 12px; overflow-wrap: anywhere; }
 .api-hint b { font-weight: 500; color: var(--accent-ink); }
 .card-dark .api-hint, .card-lima .api-hint { color: inherit; opacity: .75; }
@@ -256,6 +280,8 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
     <div class="pills" id="subnav">
       <a class="pill" href="#catalogo" data-sub="catalogo">Catálogo</a>
       <a class="pill" href="#instancias" data-sub="instancias">Instancias por empresa</a>
+      <a class="pill" href="#harness" data-sub="harness">Harness</a>
+      <a class="pill" href="#mcp" data-sub="mcp">MCP</a>
       <a class="pill" href="#madre" data-sub="madre">Agente madre</a>
       <a class="pill" href="#solicitudes" data-sub="solicitudes">Solicitudes <span class="badge lima" style="margin-left:4px">3</span></a>
       <a class="pill" href="#gobernanza" data-sub="gobernanza">Gobernanza</a>
@@ -571,6 +597,113 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
       </div>
     </section>
 
+    <!-- ================= HARNESS ================= -->
+    <section class="vista" id="v-harness" hidden>
+      <div class="card" style="background:var(--surface-2)">
+        <div class="ch"><h2>Cómo se arma el harness de un agente</h2></div>
+        <div class="capa-orden"><span class="chip">1 · Base HYPNIC</span>→<span class="chip">2 · Plantilla</span>→<span class="chip">3 · Empresa</span>→<span class="chip">4 · Instancia</span><span class="mm">Cada capa puede añadir archivos o reemplazar uno de la capa anterior. El agente recibe el resultado, ya resuelto.</span></div>
+        <p class="api-hint" style="margin:10px 0 0"><b>GET · PUT /api/garden/harness/:capa/:id/archivos/*ruta</b> · <b>POST …/publicar</b> · <b>GET /api/garden/instancias/:id/harness-efectivo</b> · archivos en hypnic-storage, versión y hash en la base</p>
+      </div>
+      <div class="hx">
+        <div class="card" style="margin:0">
+          <h2>Capa</h2>
+          <div class="capas" id="hx-capas"></div>
+          <h3>Archivos</h3>
+          <ul class="arbol" id="hx-arbol"></ul>
+          <div class="row" style="margin-top:12px"><button class="btn small" data-toast="Maqueta: crearía un archivo .md, .yaml o .json en la carpeta elegida">+ Archivo</button><button class="btn small" data-toast="Maqueta: solo se permiten las carpetas del esquema (agents, skills, reglas)">+ Carpeta</button></div>
+        </div>
+        <div style="min-width:0">
+          <div class="card" style="margin:0 0 14px">
+            <div class="ch"><h2 class="mono" id="hx-ruta" style="font-size:15px">AGENTS.md</h2><div class="row"><span class="badge neutral" id="hx-ver">v4 publicada</span><span class="badge ok" id="hx-aplica">aplica a todos</span></div></div>
+            <p class="muted" id="hx-desc" style="font-size:13.5px;margin:-4px 0 10px">Instrucciones raíz de todos los agentes.</p>
+            <textarea class="editor" id="hx-editor" spellcheck="false"></textarea>
+            <div class="row between" style="margin-top:12px">
+              <span class="mm" id="hx-meta" style="font-size:12.5px">Cambió 24 nov · Mar · hash 4be1…</span>
+              <div class="row"><button class="btn small" data-toast="Maqueta: mostraría las diferencias con la versión publicada">Ver diferencias</button><button class="btn small" data-toast="Maqueta: guardaría como borrador (no afecta a ningún agente)">Guardar borrador</button><button class="btn small primary" data-toast="Maqueta: publicaría la versión nueva de la capa; las instancias afectadas pasan a «reempaquetar» y se prueban antes de activarse">Publicar versión</button></div>
+            </div>
+          </div>
+          <div class="card" style="margin:0">
+            <div class="ch"><h2>Vista efectiva de una instancia</h2><select id="hx-inst" style="max-width:280px"><option>Analista de ventas · Chok Chok</option><option>Madre · Chok Chok</option><option>SAC WhatsApp · Pants</option></select></div>
+            <p class="muted" style="font-size:13.5px;margin:0 0 8px">Lo que de verdad recibe el agente al empaquetarse: cada archivo con la capa de donde sale.</p>
+            <div class="table-wrap"><table class="efectivo">
+              <tr><th>Archivo</th><th>Sale de</th><th>Versión</th></tr>
+              <tr><td>AGENTS.md</td><td><span class="badge neutral">base HYPNIC</span> + <span class="badge lima">empresa: INSTRUCCIONES.md</span></td><td>v4 + v2</td></tr>
+              <tr><td>agents/analista.md</td><td><span class="badge neutral">plantilla</span></td><td>v3</td></tr>
+              <tr><td>skills/comparar-periodos/SKILL.md</td><td><span class="badge neutral">base HYPNIC</span></td><td>v2</td></tr>
+              <tr><td>skills/explicar-variacion/SKILL.md</td><td><span class="badge neutral">plantilla</span></td><td>v3</td></tr>
+              <tr><td>skills/k-beauty-estacionalidad/SKILL.md</td><td><span class="badge lima">empresa</span></td><td>v1</td></tr>
+              <tr><td>skills/bigquery-data-analysis</td><td><span class="badge ok">Google · Skill Registry</span></td><td>2026-11</td></tr>
+              <tr><td>reglas/limites.yaml</td><td><span class="badge ink">instancia</span> (reemplaza la de la plantilla)</td><td>v2</td></tr>
+              <tr><td>reglas/prohibidas.json</td><td><span class="badge neutral">base HYPNIC</span></td><td>v5</td></tr>
+              <tr><td>glosario.md · tono.md</td><td><span class="badge lima">empresa</span></td><td>v1 · v2</td></tr>
+            </table></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MCP ================= -->
+    <section class="vista" id="v-mcp" hidden>
+      <div class="pills small" id="mcp-tabs">
+        <button class="pill active" data-mtab="generales">MCP generales</button>
+        <button class="pill" data-mtab="agente">MCP por agente</button>
+      </div>
+
+      <div data-mpanel="generales">
+        <div class="card">
+          <div class="ch"><h2>Catálogo general de MCP</h2><button class="btn small primary" data-toast="Maqueta: abriría el alta de un MCP de tercero (reutiliza «MCPs de terceros»); la credencial se carga en Secretos, nunca aquí">+ Registrar MCP</button></div>
+          <p class="muted" style="font-size:13.5px;margin:0 0 6px">Lo que HYPNIC tiene conectado para todo el ecosistema. Desde aquí se decide qué tools existen, de qué clase son y qué roles pueden usarlas. Lo que cada agente usa se decide en «MCP por agente».</p>
+          <p class="api-hint"><b>GET /api/garden/mcp</b> · <b>PATCH /api/garden/mcp/:id</b> (roles, tope, estado) · las credenciales viven en la bóveda; aquí solo la referencia</p>
+          <div class="table-wrap"><table id="mcp-tabla">
+            <tr><th>MCP</th><th>Origen</th><th>Clase</th><th>Credencial</th><th class="num">Tools activas</th><th>Quién puede usarlo</th><th>Tope diario</th><th>Estado</th><th></th></tr>
+            <tr class="clik" data-mcp="hypnic"><td><b>MCP HYPNIC por empresa</b><span class="sub mono">mcp.hypnic.us/&lt;empresa&gt;/mcp</span></td><td>propio</td><td>según proveedor</td><td class="mm">corredor por empresa</td><td class="num">14 / 19</td><td>todas las instancias, por recurso</td><td>400 llamadas</td><td><span class="badge ok">activo</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr class="clik" data-mcp="lago"><td><b>Lago (métricas certificadas)</b><span class="sub">nombre final según DJ-11</span></td><td>propio · hypnic-data</td><td><span class="chip">lago</span></td><td class="mm">sin secreto</td><td class="num">2 / 2</td><td>todas, por métrica</td><td>—</td><td><span class="badge warn">spec en observaciones</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr class="clik" data-mcp="siigo"><td><b>Siigo · Alegra (ERP)</b><span class="sub">proveedores del MCP HYPNIC</span></td><td>propio</td><td><span class="chip">empresa</span></td><td class="mm">bóveda por empresa</td><td class="num">6 / 9</td><td><b>solo madre y cerebro</b></td><td>200 llamadas</td><td><span class="badge ok">activo</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr class="clik" data-mcp="meta"><td><b>Meta (MCP oficial)</b></td><td>tercero</td><td><span class="chip">comercio</span></td><td class="mm">secreto «meta-mcp» (organización)</td><td class="num">4 / 11</td><td>especialistas de mercadeo</td><td>300 llamadas</td><td><span class="badge ok">activo</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr class="clik" data-mcp="higgs"><td><b>Higgsfield</b></td><td>tercero</td><td><span class="chip">tercero · gasto</span></td><td class="mm">secreto «higgsfield» (organización)</td><td class="num">1 / 7</td><td>con confirmación humana</td><td>5 USD</td><td><span class="badge neutral">en prueba</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr class="clik" data-mcp="google"><td><b>Google Agent Platform</b><span class="sub">búsqueda, BigQuery, URL context</span></td><td>Google</td><td><span class="chip">google</span></td><td class="mm">identidad de la instancia</td><td class="num">2 / 4</td><td>especialistas</td><td>según tokens</td><td><span class="badge ok">activo</span></td><td><button class="btn small">Administrar</button></td></tr>
+            <tr><td><b>Google Workspace (correo, calendario)</b></td><td>Google</td><td><span class="chip">personal</span></td><td class="mm">por persona</td><td class="num">—</td><td>la persona y sus agentes</td><td>—</td><td><span class="badge neutral">pendiente (fase 4)</span></td><td></td></tr>
+          </table></div>
+        </div>
+        <div class="card" id="mcp-detalle">
+          <div class="ch"><h2 id="mcp-det-nombre">MCP HYPNIC por empresa · tools</h2><span class="badge ok">salud 210 ms</span></div>
+          <div class="grid grid-2">
+            <div>
+              <div class="sel-canal" style="margin-top:0">
+                <div class="sel-canal-cab"><h4>Shopify</h4><span class="chip">comercio</span></div>
+                <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> pedidos.listar <span class="badge neutral">lectura</span></div>
+                <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> productos.listar <span class="badge neutral">lectura</span></div>
+                <div class="sel-item"><label class="sw"><input type="checkbox"></label> crear_link_pago <span class="badge off">escritura</span><span class="sel-detalle">Exige confirmación humana por llamada y auditor de escritura.</span></div>
+              </div>
+              <div class="sel-canal">
+                <div class="sel-canal-cab"><h4>Siigo</h4><span class="chip">empresa</span></div>
+                <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> facturas.listar <span class="badge neutral">lectura</span></div>
+                <div class="sel-item"><label class="sw"><input type="checkbox" checked></label> cartera.consultar <span class="badge neutral">lectura</span></div>
+              </div>
+            </div>
+            <div>
+              <h3 style="margin-top:0">Quién puede usarlo</h3>
+              <div class="row"><label class="sw"><input type="checkbox" checked> Madre</label><label class="sw"><input type="checkbox" checked> Especialista</label><label class="sw"><input type="checkbox" checked> Conversacional</label></div>
+              <p class="mm" style="font-size:12.5px">Los recursos de clase empresa (Siigo) quedan solo para madre y cerebro aunque marques otro rol: la regla vive en el backend.</p>
+              <h3>Topes</h3>
+              <div class="row"><label class="field" style="flex:1 1 140px">Llamadas / día por instancia<input value="400"></label><label class="field" style="flex:1 1 140px">Escrituras / día<input value="20"></label></div>
+              <div class="row" style="margin-top:12px"><button class="btn small primary" data-toast="Maqueta: PATCH /api/garden/mcp/hypnic con roles y topes, auditado">Guardar</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-mpanel="agente" hidden>
+        <div class="card">
+          <div class="ch"><h2>MCP por agente</h2><div class="empresa-sel" id="mtx-emp"></div></div>
+          <p class="muted" style="font-size:13.5px;margin:0 0 6px">Qué MCP tiene conectado cada agente de la empresa. Cada celda es la selección del consumidor de esa instancia. Clic en una celda abre «Datos y MCP» de la instancia.</p>
+          <p class="api-hint"><b>GET /api/garden/empresas/:empresa/mcp-matriz</b> · <b>PUT /api/garden/instancias/:id/mcp</b></p>
+          <div class="table-wrap"><table class="mtx" id="mtx"></table></div>
+          <div class="row" style="margin-top:12px;font-size:12.5px"><span class="celda"><span class="badge ok">n</span> conectado (n recursos)</span><span class="celda"><span class="badge off">bloqueado</span> clase no permitida para el rol</span><span class="celda"><span class="badge neutral">—</span> sin conectar</span><span class="celda"><span class="badge warn">OK</span> con confirmación humana</span></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= API DEL GARDEN ================= -->
     <section class="vista" id="v-api" hidden>
       <div class="card card-dark">
@@ -589,6 +722,12 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
           <tr><td>Conectar o recortar MCP del agente</td><td class="mono">PUT /api/garden/instancias/:id/mcp</td><td>admin</td><td>valida clase del recurso contra el rol (empresa → solo madre/cerebro); escribe la selección del consumidor; escritura apagada por defecto</td></tr>
           <tr><td>Modificar el harness por empresa</td><td class="mono">PUT /api/garden/instancias/:id/harness</td><td>admin</td><td>storage + versión + reempaquetado por el adaptador</td></tr>
           <tr><td>Skills de la instancia</td><td class="mono">PUT /api/garden/instancias/:id/skills</td><td>admin</td><td>apaga las de la plantilla o añade propias (storage)</td></tr>
+          <tr><td>Árbol del harness por capa</td><td class="mono">GET /api/garden/harness/:capa/:id/archivos</td><td>admin</td><td>capas: base, plantilla, empresa, instancia; carpetas permitidas: AGENTS.md, agents/, skills/, reglas/ (empresa: INSTRUCCIONES.md, glosario.md, tono.md)</td></tr>
+          <tr><td>Leer o guardar un archivo del harness</td><td class="mono">GET · PUT /api/garden/harness/:capa/:id/archivos/*ruta</td><td>admin</td><td>solo .md, .yaml, .json; tope de tamaño; sin secretos; borrador en storage con hash</td></tr>
+          <tr><td>Publicar una capa del harness</td><td class="mono">POST /api/garden/harness/:capa/:id/publicar</td><td>admin</td><td>versión append-only; marca las instancias afectadas para reempaquetar y probar</td></tr>
+          <tr><td>Vista efectiva del harness</td><td class="mono">GET /api/garden/instancias/:id/harness-efectivo</td><td>admin</td><td>superpone base → plantilla → empresa → instancia y dice de qué capa sale cada archivo</td></tr>
+          <tr><td>Catálogo general de MCP</td><td class="mono">GET /api/garden/mcp · PATCH /api/garden/mcp/:id</td><td>admin</td><td>origen, clase, referencia de credencial, tools y su clase, roles permitidos, topes, estado; reutiliza MCPs de terceros</td></tr>
+          <tr><td>Matriz MCP por agente</td><td class="mono">GET /api/garden/empresas/:empresa/mcp-matriz</td><td>admin</td><td>instancias × MCP con la selección de cada consumidor y lo bloqueado por clase</td></tr>
           <tr><td>Probar · activar · pausar · retirar</td><td class="mono">POST /api/garden/instancias/:id/{probar|activar|pausar|retirar}</td><td>admin; pausar también automático al tope</td><td>primera activación por empresa exige identidad de dueño</td></tr>
           <tr><td>Actualizar instancia a otra versión</td><td class="mono">POST /api/garden/instancias/:id/version</td><td>admin</td><td>pasa por «probando»; vuelta atrás conservada</td></tr>
           <tr><td>Asignar personas</td><td class="mono">PUT /api/garden/instancias/:id/personas</td><td>admin</td><td>sobre memberships y áreas del Cerebro</td></tr>
@@ -1050,6 +1189,81 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
   $("#btn-conectar-mcp").addEventListener("click", () => { $("#conectar-mcp").hidden = false; $("#conectar-mcp").scrollIntoView({ behavior: "smooth", block: "start" }); });
   $("#btn-cerrar-conectar").addEventListener("click", () => { $("#conectar-mcp").hidden = true; });
 
+  // ---------- harness ----------
+  const CAPAS = [
+    { id: "base", n: "1", t: "Base HYPNIC", s: "aplica a todos los agentes" },
+    { id: "plantilla", n: "2", t: "Plantilla · Analista de ventas", s: "v3 · 2 instancias" },
+    { id: "empresa", n: "3", t: "Empresa · Chok Chok", s: "instrucciones por empresa" },
+    { id: "instancia", n: "4", t: "Instancia · Analista de ventas · Chok", s: "solo esta instancia" },
+  ];
+  const ARBOL = {
+    base: [
+      ["AGENTS.md", "Instrucciones raíz de todos los agentes.", "v4 publicada", "aplica a todos", "# Agentes de HYPNIC\n\nResponde con cifras del lago. Cada cifra lleva su corte y su nivel.\nSi un dato no está, dilo. Nunca inventes un cero.\nNo ejecutes acciones de escritura sin confirmación humana.\nSi te piden algo fuera de tu área, pásalo al agente madre.\n\n## Voz\nContenida, clara, sin exclamaciones ni lenguaje de ventas.\n"],
+      ["agents/", null],
+      ["agents/madre.md", "Rol madre: filtra, enruta, comanda y redacta solicitudes.", "v2 publicada", "rol madre", "---\nrol: madre\nmodelo: gemini-3.1-pro-preview\nherramientas: [lago, empresa, a2a]\n---\nEres el agente madre de {{empresa}}. Decides quién ve qué..."],
+      ["agents/analista.md", "Rol especialista de análisis por área.", "v3 publicada", "rol especialista", "---\nrol: especialista\nmodelo: gemini-3.8-flash\nherramientas: [lago]\n---\nEres el analista de {{area}} de {{empresa}}..."],
+      ["agents/conversacional.md", "Rol de atención por canal (WhatsApp).", "v1 publicada", "rol conversacional", "---\nrol: conversacional\nruntime: hypnic-agents\n---\nAtiendes clientes de {{empresa}} por WhatsApp..."],
+      ["skills/", null],
+      ["skills/comparar-periodos/SKILL.md", "Compara dos ventanas de fechas con la misma métrica.", "v2 publicada", "todas las plantillas", "---\nname: comparar-periodos\ndescription: Compara una métrica entre dos periodos y explica la diferencia.\n---\n1. Pide la misma métrica para las dos ventanas.\n2. Reporta valor, variación absoluta y porcentual.\n3. Cita el corte de cada ventana."],
+      ["skills/redactar-resumen-gerencia/SKILL.md", "Resumen corto para el dueño.", "v1 publicada", "todas las plantillas", "---\nname: redactar-resumen-gerencia\n---\nTres líneas: qué pasó, por qué, qué hacer."],
+      ["reglas/", null],
+      ["reglas/limites.yaml", "Topes de llamadas y ventanas.", "v3 publicada", "aplica a todos", "max_llamadas_por_respuesta: 6\nventana_maxima_dias: 365\nsql_libre: false"],
+      ["reglas/prohibidas.json", "Claves que la puerta rechaza.", "v5 publicada", "aplica a todos", "[\"edad\", \"notas\", \"telefono\", \"documento\", \"direccion\"]"],
+      ["reglas/politica-acceso.yaml", "Clases de MCP por rol.", "v2 publicada", "aplica a todos", "empresa: [madre, cerebro]\ncomercio: [madre, especialista, conversacional]\nlago: [madre, especialista]\ntercero_gasto: confirmacion_humana"],
+    ],
+    plantilla: [
+      ["agents/analista.md", "Reemplaza el rol base para esta plantilla.", "v3 publicada", "Analista de ventas", "---\nrol: especialista\narea: Ventas\nmcp_requeridos: [lago.ventas_importe_v1, lago.ventas_unidades_v1]\n---\nEres el analista de ventas de {{empresa}}. Respondes solo con cifras certificadas..."],
+      ["skills/", null],
+      ["skills/explicar-variacion/SKILL.md", "Explica por qué subió o bajó una cifra.", "v3 publicada", "Analista de ventas", "---\nname: explicar-variacion\n---\nBusca la dimensión que más explica el cambio (canal, producto, bodega)..."],
+      ["reglas/", null],
+      ["reglas/limites.yaml", "Topes propios de la plantilla.", "v1 publicada", "Analista de ventas", "max_llamadas_por_respuesta: 6\nventana_maxima_dias: 730"],
+    ],
+    empresa: [
+      ["INSTRUCCIONES.md", "Instrucciones de la empresa: se suman al AGENTS.md de todos sus agentes.", "v2 publicada", "todos los agentes de Chok Chok", "# Chok Chok\n\nE-commerce de K-beauty en Medellín.\nLas tiendas se llaman «Poblado» y «Online»; nunca «sede».\nLas cifras de dinero van en COP sin decimales.\nCarlos es el dueño; Natalia lidera mercadeo.\n"],
+      ["glosario.md", "Nombres de bodegas, canales y productos.", "v1 publicada", "Chok Chok", "Bodega principal: BOD-01 (Itagüí)\nCanal online: Shopify\nSigo: sistema de inventario"],
+      ["tono.md", "Tono de la marca.", "v2 publicada", "Chok Chok", "Cercano y claro. Tutea. Sin emojis en reportes."],
+      ["skills/", null],
+      ["skills/k-beauty-estacionalidad/SKILL.md", "Skill propia de la empresa.", "v1 publicada", "Chok Chok", "---\nname: k-beauty-estacionalidad\n---\nTen en cuenta temporadas: amor y amistad (sep), Black Friday, diciembre..."],
+    ],
+    instancia: [
+      ["reglas/limites.yaml", "Reemplaza el límite de la plantilla solo para esta instancia.", "v2 publicada", "Analista de ventas · Chok", "max_llamadas_por_respuesta: 4\nventana_maxima_dias: 365"],
+    ],
+  };
+  let capa = "base", archivo = "AGENTS.md";
+  function pintaHarness() {
+    $("#hx-capas").innerHTML = CAPAS.map((c) => `<button class="capa ${c.id === capa ? "active" : ""}" data-capa="${c.id}"><span><b>${c.t}</b><small>${c.s}</small></span><span class="n">CAPA ${c.n}</span></button>`).join("");
+    const filas = ARBOL[capa];
+    if (!filas.some((f) => f[0] === archivo && f[1])) archivo = (filas.find((f) => f[1]) || [])[0];
+    $("#hx-arbol").innerHTML = filas.map(([ruta, desc, ver]) => {
+      const prof = ruta.split("/").length - (ruta.endsWith("/") ? 2 : 1);
+      const pad = `style="padding-left:${6 + prof * 14}px"`;
+      if (!desc) return `<li><span class="dir" ${pad}>${ruta.split("/").slice(-2)[0]}/</span></li>`;
+      return `<li><button ${pad} class="${ruta === archivo ? "active" : ""}" data-file="${ruta}"><span>${ruta.split("/").pop()}</span><span class="tag">${ver.split(" ")[0]}</span></button></li>`;
+    }).join("");
+    const f = filas.find((x) => x[0] === archivo);
+    if (f) { $("#hx-ruta").textContent = f[0]; $("#hx-desc").textContent = f[1]; $("#hx-ver").textContent = f[2]; $("#hx-aplica").textContent = f[3]; $("#hx-editor").value = f[4]; }
+  }
+  $("#hx-capas").addEventListener("click", (e) => { const b = e.target.closest("[data-capa]"); if (b) { capa = b.dataset.capa; pintaHarness(); } });
+  $("#hx-arbol").addEventListener("click", (e) => { const b = e.target.closest("[data-file]"); if (b) { archivo = b.dataset.file; pintaHarness(); } });
+
+  // ---------- MCP ----------
+  $("#mcp-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-mtab]"); if (!b) return; $$("#mcp-tabs .pill").forEach((p) => p.classList.toggle("active", p === b)); $$("[data-mpanel]").forEach((p) => { p.hidden = p.dataset.mpanel !== b.dataset.mtab; }); });
+  $("#mcp-tabla").addEventListener("click", (e) => { const r = e.target.closest("[data-mcp]"); if (!r) return; $("#mcp-det-nombre").textContent = r.querySelector("b").textContent + " · tools"; $("#mcp-detalle").scrollIntoView({ behavior: "smooth", block: "start" }); });
+  const MCPS = ["Lago", "Shopify", "Siigo (ERP)", "Meta", "Higgsfield", "Google"];
+  const MATRIZ = {
+    "Chok Chok": [["Madre", ["5", "3", "6", "—", "—", "2"]], ["Analista de ventas", ["2", "1", "bloq", "—", "—", "1"]], ["Analista de inventario", ["3", "—", "bloq", "—", "—", "—"]], ["Analista de contabilidad (solicitada)", ["—", "—", "bloq", "—", "—", "—"]]],
+    "Pants": [["Madre", ["3", "5", "—", "—", "—", "1"]], ["SAC WhatsApp", ["—", "13", "bloq", "—", "—", "—"]]],
+    "Electro Feria": [["Analista de ventas", ["2", "—", "bloq", "—", "—", "—"]], ["Madre", ["—", "—", "—", "—", "—", "—"]]],
+  };
+  let empMtx = "Chok Chok";
+  function pintaMatriz() {
+    $("#mtx-emp").innerHTML = EMPRESAS.map((e) => `<button class="pill ${e === empMtx ? "active" : ""}" data-emp="${e}">${e}</button>`).join("");
+    const celda = (v) => v === "bloq" ? `<span class="badge off">bloqueado</span>` : v === "—" ? `<span class="badge neutral">—</span>` : `<span class="badge ok">${v}</span>`;
+    $("#mtx").innerHTML = `<tr><th>Agente</th>${MCPS.map((m) => `<th>${m}</th>`).join("")}</tr>` + MATRIZ[empMtx].map(([n, cs]) => `<tr class="clik" data-agente="${n}"><td><b>${n}</b></td>${cs.map(celda).join("")}</tr>`).join("");
+  }
+  $("#mtx-emp").addEventListener("click", (e) => { const b = e.target.closest("[data-emp]"); if (b) { empMtx = b.dataset.emp; pintaMatriz(); } });
+  $("#mtx").addEventListener("click", (e) => { const r = e.target.closest("[data-agente]"); if (r) { $("#inst-nombre").textContent = `${r.dataset.agente} · ${empMtx}`; location.hash = "instancia"; setTimeout(() => { const b = $('[data-itab="datos"]'); if (b) b.click(); }, 0); } });
+
   // ---------- madre ----------
   $("#madre-sel").innerHTML = EMPRESAS.map((e, i) => `<button class="pill ${i === 0 ? "active" : ""}" data-madre="${e}">${e}</button>`).join("");
   $("#madre-sel").addEventListener("click", (e) => { const b = e.target.closest("[data-madre]"); if (b) { $$("#madre-sel .pill").forEach((p) => p.classList.toggle("active", p === b)); $("#madre-nombre").textContent = `Madre · ${b.dataset.madre}`; } });
@@ -1061,6 +1275,8 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
     nuevo: { t: "Nuevo agente por departamento", s: "Siete pasos. Al final hay una plantilla con su versión 1 en borrador, sin instancias y sin despliegue.", sub: "catalogo", acc: `<a class="btn secondary" href="#catalogo">Cancelar</a>` },
     instancias: { t: "Instancias por empresa", s: "Qué agentes tiene cada marca, en qué estado, con qué datos y cuánto consumen.", sub: "instancias", acc: `<a class="btn primary" href="#nuevo">+ Nuevo agente</a>` },
     instancia: { t: "Instancia", s: "Resumen, datos y MCP, harness y skills, personas, consumo y auditoría de una instancia.", sub: "instancias", acc: `<a class="btn secondary" href="#instancias">← Instancias</a>` },
+    harness: { t: "Harness", s: "Las carpetas que arman cada agente: AGENTS.md, agents, skills y reglas, por capas (base HYPNIC, plantilla, empresa e instancia), con las instrucciones por empresa.", sub: "harness", acc: `<button class="btn primary" data-toast="Maqueta: publicaría la capa abierta">Publicar capa</button>` },
+    mcp: { t: "MCP", s: "Los MCP generales que administra HYPNIC y los que tiene conectado cada agente de cada empresa.", sub: "mcp", acc: "" },
     madre: { t: "Agente madre", s: "El agente estructural de cada marca: seguridad, ruteo, comando y solicitudes.", sub: "madre", acc: "" },
     solicitudes: { t: "Solicitudes", s: "Lo que piden los clientes y lo que HYPNIC evalúa, cotiza y carga.", sub: "solicitudes", acc: "" },
     gobernanza: { t: "Gobernanza", s: "Quién aprueba cada paso, reglas duras del backend, clases de MCP, topes y runtimes.", sub: "gobernanza", acc: "" },
@@ -1079,6 +1295,8 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
     $$("#nav .nav-item").forEach((n) => n.classList.toggle("active", n.dataset.nav === "garden"));
     if (v === "nuevo") pintaPasos();
     if (v === "instancias") pintaInstancias();
+    if (v === "harness") pintaHarness();
+    if (v === "mcp") pintaMatriz();
   }
   $("#nav").addEventListener("click", (e) => { const a = e.target.closest("[data-nav='otra']"); if (a) { e.preventDefault(); toast("Esta sección no está en la maqueta: solo Second Brain › Agent Garden."); } });
   window.addEventListener("hashchange", ruta);
