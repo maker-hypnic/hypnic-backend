@@ -516,8 +516,11 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
               <tr><td>explicar-variacion</td><td>plantilla v3</td><td><span class="badge ok">activa</span></td></tr>
               <tr><td>redactar-resumen-gerencia</td><td>plantilla v3</td><td><span class="badge neutral">apagada en Chok</span></td></tr>
               <tr><td>k-beauty-estacionalidad</td><td>propia de Chok · storage</td><td><span class="badge ok">activa</span></td></tr>
+              <tr><td>bigquery-data-analysis</td><td>Google · Skill Registry</td><td><span class="badge ok">activa</span></td></tr>
             </table></div>
-            <p class="mm" style="font-size:12.5px;margin:10px 0 0">Las skills de la plantilla se apagan por instancia; las propias de la empresa se suben como archivos y se versionan igual que el harness.</p>
+            <p class="api-hint" style="margin-top:10px"><b>PUT /api/garden/instancias/:id/skills</b> · origen: plantilla, propia (storage) o Google (Skill Registry)</p>
+            <div class="row"><button class="btn small" data-toast="Maqueta: listaría las skills del Skill Registry de Google para montar una en esta instancia">+ Skill de Google</button><button class="btn small" data-toast="Maqueta: subiría una skill propia a storage">+ Skill propia</button></div>
+            <p class="mm" style="font-size:12.5px;margin:10px 0 0">Las skills de la plantilla se apagan por instancia; las propias se suben como archivos y se versionan igual que el harness; las de Google se montan desde su Skill Registry al empaquetar.</p>
           </div>
         </div>
       </div>
@@ -598,11 +601,13 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
         </table></div>
       </div>
       <div class="card">
-        <div class="ch"><h2>Conexión con Google (Gemini Enterprise Agent Platform)</h2><span class="badge ok">conectado · proyecto hypnic-garden-01 · us-central1</span></div>
-        <p class="muted" style="font-size:13.5px;margin:0 0 6px">El garden habla con Google por un adaptador propio (<span class="mono">AgentRuntimeAdk</span>) detrás del puerto <span class="mono">RuntimeDeAgentes</span>. Lo que se ve en la consola de Google es el reflejo de lo que el garden ordenó; nada hecho a mano en la consola cuenta como versión.</p>
+        <div class="ch"><h2>Conexión con Google Agent Platform (antes Vertex AI Agent Builder)</h2><span class="badge ok">conectado · proyecto hypnic-garden-01 · us-central1</span></div>
+        <p class="muted" style="font-size:13.5px;margin:0 0 6px">El garden se conecta a las piezas de Google que antes se llamaban Vertex AI: <b>Agent Garden</b> (plantillas y ejemplos), <b>Agent Runtime</b> (donde corren), <b>Agent Registry</b> (inventario), <b>Skill Registry</b> (skills de Google) y <b>Model Garden</b> por Vertex (modelos). Habla con todas por adaptadores propios detrás del puerto <span class="mono">RuntimeDeAgentes</span>. Lo que se ve en la consola de Google es el reflejo de lo que el garden ordenó; nada hecho a mano en la consola cuenta como versión.</p>
         <p class="api-hint">identidad de servicio del garden: <b>garden-control@hypnic-garden-01.iam…</b> · permisos: aiplatform.reasoningEngines.* · iam.serviceAccounts.create · cuota: 100 recursos por proyecto y región (pedido aumento a 300)</p>
         <div class="table-wrap"><table>
           <tr><th>Operación del garden</th><th>Qué hace en Google</th><th>Qué guarda el garden</th></tr>
+          <tr><td>Crear agente desde una plantilla de Google</td><td>Lee el catálogo de <b>Agent Garden</b> (antes Vertex AI Agent Builder) y copia el código de arranque de la plantilla elegida a nuestro repo de plantillas</td><td>plantilla nuestra, con el origen anotado</td></tr>
+          <tr><td>Conectar skills de Google</td><td>Consulta el <b>Skill Registry</b> de Google, lista las skills disponibles y las monta en el agente al empaquetar (mismo mecanismo que las nuestras)</td><td>skill, versión y origen «google» en la versión o en la instancia</td></tr>
           <tr><td>Publicar versión</td><td>Empaqueta el agente ADK (fábrica única + contenido + harness base) y lo deja listo para desplegar; copia de arranque desde <b>Agent Garden de Google</b> si la plantilla nació de ahí</td><td>SHA del contenido + manifiesto</td></tr>
           <tr><td>Instanciar</td><td>Crea la cuenta de servicio de la instancia; <span class="mono">reasoningEngines.create</span> en <b>Agent Runtime</b> con etiquetas <span class="mono">hypnic-empresa</span>, <span class="mono">hypnic-instancia</span>, <span class="mono">hypnic-version</span>; queda registrado en <b>Agent Registry</b></td><td><span class="mono">resourceName</span>, identidad, estado «creada»</td></tr>
           <tr><td>Conectar MCP del agente</td><td>Nada en Google: el agente lee el MCP de la empresa (<span class="mono">mcp.hypnic.us/&lt;empresa&gt;/mcp</span>) con su identidad; la selección vive en platform</td><td>selección del consumidor</td></tr>
@@ -978,7 +983,9 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
           <div class="sel-item"><label class="sw"><input type="checkbox"></label> pedidos.listar (lectura)</div>
           <div class="sel-item sel-bloqueado"><label class="sw"><input type="checkbox" disabled></label> escritura <span class="badge off">no en plantillas de análisis</span></div></fieldset></div>`,
     () => `<h2>5 · Skills y harness base</h2>
-      <h3>Skills de la plantilla</h3><div class="chips"><span class="chip active">comparar-periodos</span><span class="chip active">aviso-vencidos</span><span class="chip">redactar-resumen-gerencia</span><span class="chip">explicar-variacion</span><button class="btn small" data-toast="Maqueta: subiría una skill nueva al repo de plantillas por PR">+ Nueva skill</button></div>
+      <h3>Skills de la plantilla</h3><div class="chips"><span class="chip active">comparar-periodos</span><span class="chip active">aviso-vencidos</span><span class="chip">redactar-resumen-gerencia</span><span class="chip">explicar-variacion</span><button class="btn small" data-toast="Maqueta: subiría una skill nueva al repo de plantillas por PR">+ Skill propia</button></div>
+      <h3>Skills de Google (Skill Registry)</h3><div class="chips"><span class="chip active">bigquery-data-analysis</span><span class="chip">document-understanding</span><span class="chip">google-search-grounding</span><button class="btn small" data-toast="Maqueta: buscaría en el Skill Registry de Google y montaría la skill elegida">Buscar en el Skill Registry</button></div>
+      <p class="mm" style="font-size:12.5px;margin:6px 0 0">Las skills de Google se cobran por lectura del registro (desde sep-2026); el garden las cuenta en el consumo de la instancia.</p>
       <h3>Harness base (se complementa por empresa)</h3>
       <div class="table-wrap"><table><tr><th>Archivo</th><th>Qué fija</th></tr>
         <tr><td class="mono">reglas.md</td><td>Voz HYPNIC, qué nunca decir, cómo citar corte y nivel</td></tr>
