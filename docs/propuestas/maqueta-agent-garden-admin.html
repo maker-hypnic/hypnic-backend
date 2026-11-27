@@ -270,7 +270,7 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
         <div class="card card-lima metric" style="margin:0"><div class="l">Plantillas publicadas</div><div class="n">9</div><div class="f">7 genéricas de HYPNIC · 2 a la medida</div></div>
         <div class="card metric" style="margin:0"><div class="l">Instancias activas</div><div class="n">6</div><div class="f">en 3 empresas</div></div>
         <div class="card metric" style="margin:0"><div class="l">Estructurales</div><div class="n">1 <small>madre</small></div><div class="f">organizador y front viven fuera del catálogo</div></div>
-        <div class="card metric" style="margin:0"><div class="l">Runtimes</div><div class="n">2</div><div class="f">Agent Runtime (ADK) · hypnic-agents</div></div>
+        <div class="card metric" style="margin:0"><div class="l">Google Agent Platform</div><div class="n"><span class="badge ok" style="font-size:14px">conectado</span></div><div class="f">hypnic-garden-01 · 5 recursos en Agent Runtime · <a href="#api">ver conexión</a></div></div>
       </div>
       <div class="card">
         <div class="ch">
@@ -572,7 +572,7 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
     <section class="vista" id="v-api" hidden>
       <div class="card card-dark">
         <h2 style="color:inherit">El Agent Garden es el backend</h2>
-        <p class="muted" style="font-size:14px;margin:0;max-width:70ch">Vive en el API de HYPNIC (hypnic-platform, <span class="mono">api.hypnic.us</span>) como módulo <span class="mono">src/garden/</span> con rutas <span class="mono">/api/garden/*</span>. Guarda plantillas, versiones, harness, MCP por agente, instancias, solicitudes, topes y auditoría. El admin es un cliente más; el agente madre es otro; el runtime (Agent Runtime de Google o hypnic-agents) es un adaptador detrás de un puerto. Nada de esto vive en el front ni en la consola de Google.</p>
+        <p class="muted" style="font-size:14px;margin:0;max-width:70ch">Vive en el API de HYPNIC (hypnic-platform, <span class="mono">api.hypnic.us</span>) como módulo <span class="mono">src/garden/</span> con rutas <span class="mono">/api/garden/*</span>. Guarda plantillas, versiones, harness, MCP por agente, instancias, solicitudes, topes y auditoría, y <b style="color:var(--accent)">está conectado con Google</b>: crea, actualiza y borra los agentes en Agent Runtime, los registra en Agent Registry y les da identidad en IAM. El admin es un cliente más; el agente madre es otro. Nada de esto vive en el front ni se edita en la consola de Google.</p>
       </div>
       <div class="card">
         <h2>Contrato (propuesta, para la spec)</h2>
@@ -595,6 +595,26 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
           <tr><td>Reportar un turno</td><td class="mono">POST /api/usage/events</td><td><b>runtime</b> (identidad de servicio)</td><td>ya existe; kinds agente-turno / agente-tarea / agente-ronda; 402 al tope</td></tr>
           <tr><td>Políticas</td><td class="mono">GET · PUT /api/garden/politicas</td><td>admin</td><td>topes por defecto, runtimes habilitados, clases de MCP</td></tr>
           <tr><td>Auditoría</td><td class="mono">GET /api/garden/auditoria</td><td>admin</td><td><span class="mono">audit_log</span> con identidad real</td></tr>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Conexión con Google (Gemini Enterprise Agent Platform)</h2><span class="badge ok">conectado · proyecto hypnic-garden-01 · us-central1</span></div>
+        <p class="muted" style="font-size:13.5px;margin:0 0 6px">El garden habla con Google por un adaptador propio (<span class="mono">AgentRuntimeAdk</span>) detrás del puerto <span class="mono">RuntimeDeAgentes</span>. Lo que se ve en la consola de Google es el reflejo de lo que el garden ordenó; nada hecho a mano en la consola cuenta como versión.</p>
+        <p class="api-hint">identidad de servicio del garden: <b>garden-control@hypnic-garden-01.iam…</b> · permisos: aiplatform.reasoningEngines.* · iam.serviceAccounts.create · cuota: 100 recursos por proyecto y región (pedido aumento a 300)</p>
+        <div class="table-wrap"><table>
+          <tr><th>Operación del garden</th><th>Qué hace en Google</th><th>Qué guarda el garden</th></tr>
+          <tr><td>Publicar versión</td><td>Empaqueta el agente ADK (fábrica única + contenido + harness base) y lo deja listo para desplegar; copia de arranque desde <b>Agent Garden de Google</b> si la plantilla nació de ahí</td><td>SHA del contenido + manifiesto</td></tr>
+          <tr><td>Instanciar</td><td>Crea la cuenta de servicio de la instancia; <span class="mono">reasoningEngines.create</span> en <b>Agent Runtime</b> con etiquetas <span class="mono">hypnic-empresa</span>, <span class="mono">hypnic-instancia</span>, <span class="mono">hypnic-version</span>; queda registrado en <b>Agent Registry</b></td><td><span class="mono">resourceName</span>, identidad, estado «creada»</td></tr>
+          <tr><td>Conectar MCP del agente</td><td>Nada en Google: el agente lee el MCP de la empresa (<span class="mono">mcp.hypnic.us/&lt;empresa&gt;/mcp</span>) con su identidad; la selección vive en platform</td><td>selección del consumidor</td></tr>
+          <tr><td>Modificar harness o skills</td><td>Reempaqueta y <span class="mono">reasoningEngines.update</span> (nueva revisión del recurso)</td><td>hash y versión del overlay</td></tr>
+          <tr><td>Probar</td><td><span class="mono">streamQuery</span> con operaciones <span class="mono">ping</span>, <span class="mono">meta</span> y el evalset</td><td>resultado y fecha</td></tr>
+          <tr><td>Activar</td><td>Da <span class="mono">roles/aiplatform.user</span> al invocador (el Cerebro o el madre) sobre ese recurso</td><td>estado «activa», quién activó</td></tr>
+          <tr><td>Pausar</td><td>Revoca el permiso de invocación y deja <span class="mono">minInstances: 0</span>; el MCP deja de atender al consumidor</td><td>estado «pausada»</td></tr>
+          <tr><td>Retirar</td><td><span class="mono">reasoningEngines.delete</span> y borra la cuenta de servicio</td><td>historial conservado</td></tr>
+          <tr><td>Medir</td><td>Lee el export de facturación (vCPU-h, GiB-h) por etiqueta de instancia; los tokens los reporta el propio agente a <span class="mono">/api/usage/events</span></td><td>consumo por instancia</td></tr>
+          <tr><td>Modelo</td><td>Gemini por Vertex con la cuenta de HYPNIC (región y modelo por desarrollo, spec vertex-por-desarrollo); cambiar a Claude en Vertex es configuración</td><td>modelo por versión / override por instancia</td></tr>
+          <tr><td>Agentes conversacionales (SAC)</td><td>No van a Agent Runtime: corren en <span class="mono">hypnic-agents</span> (Cloud Run, proyecto hypnic-agents) por el segundo adaptador</td><td>mismo modelo de instancia</td></tr>
+          <tr><td>Managed Agents API</td><td>Tercer adaptador, apagado: Preview, solo global, un base agent</td><td>—</td></tr>
         </table></div>
       </div>
       <div class="grid grid-2">
