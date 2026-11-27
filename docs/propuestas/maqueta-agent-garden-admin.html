@@ -206,6 +206,9 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--ink-inverse); padding: 10px 18px; border-radius: 999px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px); z-index: 20; }
 .toast.on { opacity: 1; }
 .vista[hidden] { display: none !important; }
+.api-hint { font: 400 11.5px var(--font-mono); color: var(--text-muted); margin: -6px 0 12px; overflow-wrap: anywhere; }
+.api-hint b { font-weight: 500; color: var(--accent-ink); }
+.card-dark .api-hint, .card-lima .api-hint { color: inherit; opacity: .75; }
 .empresa-sel { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .empresa-sel .pill { padding: 6px 13px; font-size: 13px; }
 .gauge { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
@@ -239,7 +242,7 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
   </aside>
 
   <main class="content">
-    <div class="maqueta-aviso"><span class="mono">MAQUETA</span><span>Datos de ejemplo. Nada lee ni escribe en sistemas reales. Sirve para decidir pantallas y gobernanza antes de escribir código.</span></div>
+    <div class="maqueta-aviso"><span class="mono">MAQUETA</span><span>Front de administración del <b>Agent Garden</b>, el backend que vive en el API (hypnic-platform) y permite crear agentes, modificar su harness y conectar los MCP de cada uno. Datos de ejemplo; nada lee ni escribe en sistemas reales.</span></div>
 
     <div class="breadcrumb">Admin · Second Brain · Agent Garden</div>
     <div class="page-header">
@@ -258,6 +261,7 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
       <a class="pill" href="#gobernanza" data-sub="gobernanza">Gobernanza</a>
       <a class="pill" href="#consumo" data-sub="consumo">Consumo y topes</a>
       <a class="pill" href="#auditoria" data-sub="auditoria">Auditoría</a>
+      <a class="pill" href="#api" data-sub="api">API del garden</a>
     </div>
 
     <!-- ================= CATÁLOGO ================= -->
@@ -273,7 +277,8 @@ tr.clik { cursor: pointer; } tr.clik:hover td { background: var(--bg-alt); }
           <h2>Plantillas por departamento</h2>
           <div class="chips" id="filtro-area"></div>
         </div>
-        <p class="muted" style="margin:0 0 14px;font-size:13.5px">Una plantilla es un desarrollo de tipo agente con versiones. Se instancia por marca. Las estructurales solo las crea HYPNIC.</p>
+        <p class="muted" style="margin:0 0 6px;font-size:13.5px">Una plantilla es un desarrollo de tipo agente con versiones. Se instancia por marca. Las estructurales solo las crea HYPNIC.</p>
+        <p class="api-hint"><b>GET /api/garden/agentes</b> · el panel pinta lo que el backend guarda; ninguna plantilla vive en el front</p>
         <div class="grid grid-3" id="catalogo-grid"></div>
       </div>
       <div class="card" style="background:var(--surface-2)">
@@ -309,7 +314,8 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
         </div>
         <div>
           <div class="card">
-            <div class="ch"><h2>Versiones</h2><button class="btn small primary" data-toast="Maqueta: crearía v4 como borrador copiando v3">+ Nueva versión (borrador)</button></div>
+            <div class="ch"><h2>Versiones</h2><button class="btn small primary" data-toast="Maqueta: POST /api/garden/agentes/:id/versiones → v4 borrador copiando v3">+ Nueva versión (borrador)</button></div>
+            <p class="api-hint"><b>POST /api/garden/agentes/:id/versiones</b> · <b>PUT …/versiones/:v/harness</b> (harness base) · <b>POST …/versiones/:v/publicar</b></p>
             <div class="table-wrap"><table>
               <tr><th>Versión</th><th>Estado</th><th>Cambió</th><th>Instancias</th></tr>
               <tr><td>v3</td><td><span class="badge ok">publicada</span></td><td>24 nov · Mar<span class="sub">skill explicar-variacion; tope de llamadas 6</span></td><td class="num">2</td></tr>
@@ -375,6 +381,7 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
           <button class="btn primary" data-toast="Maqueta: crearía la instancia en estado «creada» con su identidad y su consumidor MCP; no se activa todavía">Instanciar</button>
         </div>
         <p class="mm" style="font-size:12.5px;margin:10px 0 0">Instanciar crea la identidad de servicio, el consumidor del MCP de la empresa y los overlays en storage. Queda en «creada»: después se conectan datos, se prueba y se activa.</p>
+        <p class="api-hint" style="margin-top:8px"><b>POST /api/garden/empresas/:empresa/instancias</b> · el backend llama al adaptador del runtime (Agent Runtime o hypnic-agents); el panel no habla con Google</p>
       </div>
     </section>
 
@@ -438,6 +445,7 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
         <div class="card">
           <div class="ch"><h2>Datos y MCP de esta instancia</h2><button class="btn small primary" id="btn-conectar-mcp">+ Conectar un MCP</button></div>
           <p class="muted" style="font-size:13.5px;margin:0 0 6px">Es la misma selección por consumidor de «Datos y permisos», vista desde la instancia. La credencial la entrega el corredor por llamada; el agente nunca la ve.</p>
+          <p class="api-hint"><b>PUT /api/garden/instancias/:id/mcp</b> · conecta o recorta los MCP de este agente; el backend valida la clase del recurso contra el rol y escribe la selección del consumidor</p>
           <div class="sel-ok">Regla del 25-nov aplicada: los sistemas de empresa (ERP, contabilidad) solo son seleccionables para el agente madre o el cerebro. Para este agente aparecen bloqueados.</div>
 
           <div class="sel-canal">
@@ -490,7 +498,8 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
         <div class="grid grid-2">
           <div class="card">
             <div class="ch"><h2>Harness de Chok Chok para esta instancia</h2><span class="badge neutral">v2 · hash 9f1c…</span></div>
-            <p class="muted" style="font-size:13.5px;margin:0 0 10px">Archivos privados en hypnic-storage. Cada cambio crea una versión nueva; el agente los recibe ya resueltos al empaquetar.</p>
+            <p class="muted" style="font-size:13.5px;margin:0 0 6px">Archivos privados en hypnic-storage. Cada cambio crea una versión nueva; el agente los recibe ya resueltos al empaquetar.</p>
+            <p class="api-hint"><b>PUT /api/garden/instancias/:id/harness</b> · modifica el harness de este agente en esta empresa; el backend guarda el archivo en storage, versiona y reempaqueta</p>
             <div class="table-wrap"><table>
               <tr><th>Archivo</th><th>Qué es</th><th>Cambió</th></tr>
               <tr><td class="mono">reglas-chok.md</td><td>Tono de la marca, qué no decir, cómo nombrar las tiendas</td><td>18 nov · Mar</td></tr>
@@ -554,6 +563,61 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
             <li><span class="mono">18 nov 11:05</span><span>Mar subió reglas-chok.md v2 (harness)</span></li>
             <li><span class="mono">7 nov 10:30</span><span><b>Mar (dueña)</b> activó la instancia · primera activación en Chok Chok</span></li>
             <li><span class="mono">5 nov 15:02</span><span>Juan creó la instancia desde la solicitud S-0007</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= API DEL GARDEN ================= -->
+    <section class="vista" id="v-api" hidden>
+      <div class="card card-dark">
+        <h2 style="color:inherit">El Agent Garden es el backend</h2>
+        <p class="muted" style="font-size:14px;margin:0;max-width:70ch">Vive en el API de HYPNIC (hypnic-platform, <span class="mono">api.hypnic.us</span>) como módulo <span class="mono">src/garden/</span> con rutas <span class="mono">/api/garden/*</span>. Guarda plantillas, versiones, harness, MCP por agente, instancias, solicitudes, topes y auditoría. El admin es un cliente más; el agente madre es otro; el runtime (Agent Runtime de Google o hypnic-agents) es un adaptador detrás de un puerto. Nada de esto vive en el front ni en la consola de Google.</p>
+      </div>
+      <div class="card">
+        <h2>Contrato (propuesta, para la spec)</h2>
+        <div class="table-wrap"><table>
+          <tr><th>Qué hace</th><th>Operación</th><th>Quién la llama</th><th>Regla del backend</th></tr>
+          <tr><td>Crear un agente (plantilla)</td><td class="mono">POST /api/garden/agentes</td><td>admin (superadmin HYPNIC)</td><td>crea la fila <span class="mono">apps.kind='agente'</span> y la v1 en borrador; <span class="mono">tipo=estructural</span> solo con origen HYPNIC</td></tr>
+          <tr><td>Nueva versión</td><td class="mono">POST /api/garden/agentes/:id/versiones</td><td>admin</td><td>append-only; instrucciones, modelo, skills, harness base, MCP requeridos</td></tr>
+          <tr><td>Modificar el harness base</td><td class="mono">PUT /api/garden/agentes/:id/versiones/:v/harness</td><td>admin</td><td>solo en borrador; archivos a storage, hash en la versión</td></tr>
+          <tr><td>Publicar versión</td><td class="mono">POST /api/garden/agentes/:id/versiones/:v/publicar</td><td>admin</td><td>exige evalset; no mueve instancias</td></tr>
+          <tr><td>Instanciar en una empresa</td><td class="mono">POST /api/garden/empresas/:empresa/instancias</td><td>admin</td><td>crea identidad, consumidor MCP y overlays; llama al adaptador del runtime</td></tr>
+          <tr><td>Conectar o recortar MCP del agente</td><td class="mono">PUT /api/garden/instancias/:id/mcp</td><td>admin</td><td>valida clase del recurso contra el rol (empresa → solo madre/cerebro); escribe la selección del consumidor; escritura apagada por defecto</td></tr>
+          <tr><td>Modificar el harness por empresa</td><td class="mono">PUT /api/garden/instancias/:id/harness</td><td>admin</td><td>storage + versión + reempaquetado por el adaptador</td></tr>
+          <tr><td>Skills de la instancia</td><td class="mono">PUT /api/garden/instancias/:id/skills</td><td>admin</td><td>apaga las de la plantilla o añade propias (storage)</td></tr>
+          <tr><td>Probar · activar · pausar · retirar</td><td class="mono">POST /api/garden/instancias/:id/{probar|activar|pausar|retirar}</td><td>admin; pausar también automático al tope</td><td>primera activación por empresa exige identidad de dueño</td></tr>
+          <tr><td>Actualizar instancia a otra versión</td><td class="mono">POST /api/garden/instancias/:id/version</td><td>admin</td><td>pasa por «probando»; vuelta atrás conservada</td></tr>
+          <tr><td>Asignar personas</td><td class="mono">PUT /api/garden/instancias/:id/personas</td><td>admin</td><td>sobre memberships y áreas del Cerebro</td></tr>
+          <tr><td>Redactar una solicitud</td><td class="mono">POST /api/garden/solicitudes</td><td><b>agente madre</b> (identidad de servicio) o admin</td><td>nunca crea instancias; borrador + estado «nueva»</td></tr>
+          <tr><td>Evaluar, cotizar, cargar</td><td class="mono">PATCH /api/garden/solicitudes/:id</td><td>admin</td><td>horas cotizadas; «cargar» = instanciar</td></tr>
+          <tr><td>Consumo</td><td class="mono">GET /api/garden/instancias/:id/consumo</td><td>admin, portal del cliente (su empresa)</td><td>lee <span class="mono">usage_events</span> + gasto GCP etiquetado + llamadas MCP</td></tr>
+          <tr><td>Reportar un turno</td><td class="mono">POST /api/usage/events</td><td><b>runtime</b> (identidad de servicio)</td><td>ya existe; kinds agente-turno / agente-tarea / agente-ronda; 402 al tope</td></tr>
+          <tr><td>Políticas</td><td class="mono">GET · PUT /api/garden/politicas</td><td>admin</td><td>topes por defecto, runtimes habilitados, clases de MCP</td></tr>
+          <tr><td>Auditoría</td><td class="mono">GET /api/garden/auditoria</td><td>admin</td><td><span class="mono">audit_log</span> con identidad real</td></tr>
+        </table></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>Lo que ya existe en el API y se reutiliza</h2>
+          <ul class="estado-lista">
+            <li><span class="dot ok"></span><span><span class="mono">apps.kind='agente'</span> + <span class="mono">agent_profile</span> (agentes-data-house)</span></li>
+            <li><span class="dot ok"></span><span>Bóveda y corredor de credenciales (<span class="mono">POST /api/credenciales</span>)</span></li>
+            <li><span class="dot ok"></span><span>Techo y selección por consumidor del canal mcp (mcp-empresa-contrato, T1–T4)</span></li>
+            <li><span class="dot ok"></span><span>MCPs de terceros (<span class="mono">/api/admin/mcp-externos</span>)</span></li>
+            <li><span class="dot ok"></span><span>Consumo, créditos y 402 (<span class="mono">POST /api/usage/events</span>)</span></li>
+            <li><span class="dot ok"></span><span><span class="mono">audit_log</span>, memberships, áreas del Cerebro (migración 084)</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Lo nuevo que el backend tiene que aprender</h2>
+          <ul class="estado-lista">
+            <li><span class="dot lima"></span><span>Plantilla, versión e instancia como entidades (<span class="mono">garden_*</span>)</span></li>
+            <li><span class="dot lima"></span><span>Puerto <span class="mono">RuntimeDeAgentes</span> con dos adaptadores: Agent Runtime (ADK) y hypnic-agents</span></li>
+            <li><span class="dot lima"></span><span>Harness y skills versionados en storage, resueltos al empaquetar</span></li>
+            <li><span class="dot lima"></span><span>Clase de recurso MCP (empresa, comercio, cerebro, tercero, personal) y su candado por rol</span></li>
+            <li><span class="dot lima"></span><span>Consumidor MCP por instancia (hoy es por desarrollo)</span></li>
+            <li><span class="dot lima"></span><span>Solicitudes, topes por instancia y etiqueta de instancia en el gasto GCP</span></li>
           </ul>
         </div>
       </div>
@@ -913,6 +977,7 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
       <div class="row"><label class="sw"><input type="checkbox" checked> Pedirla en una solicitud</label><label class="sw"><input type="checkbox" checked> Enrutarle preguntas</label><label class="sw"><input type="checkbox" disabled> Activarla solo <span class="mm">(nunca)</span></label></div>
       <div class="sel-ok" style="margin-top:12px">Candado: esta plantilla nace como <b>no estructural</b>. Ninguna solicitud ni agente puede cambiarlo; solo un dueño desde el catálogo.</div>`,
     () => `<h2>7 · Revisar y crear</h2>
+      <p class="api-hint"><b>POST /api/garden/agentes</b> · el admin manda el formulario; el backend crea la plantilla, su v1 y audita</p>
       <p class="muted" style="font-size:13.5px">Se crea <b>${nuevo.nombre}</b> en ${nuevo.dep} con la versión 1 en borrador. Para que corra en una empresa hace falta: publicar v1 (HYPNIC), instanciarla, conectar sus datos, probarla y que un dueño apruebe la primera activación.</p>
       <div class="sel-ok">Nada se despliega ni se cobra en este paso.</div>
       <div class="row" style="margin-top:12px"><button class="btn primary" data-toast="Maqueta: crearía la plantilla y v1 en borrador, con auditoría; volvería al catálogo">Crear plantilla (v1 borrador)</button><button class="btn secondary" data-toast="Maqueta: guardaría el asistente a medias">Guardar y seguir después</button></div>`,
@@ -974,6 +1039,7 @@ No ejecutas acciones de escritura. Si te piden algo fuera de ventas, lo pasas al
     gobernanza: { t: "Gobernanza", s: "Quién aprueba cada paso, reglas duras del backend, clases de MCP, topes y runtimes.", sub: "gobernanza", acc: "" },
     consumo: { t: "Consumo y topes", s: "Costo real por instancia y por empresa, topes y base del precio por agente al mes.", sub: "consumo", acc: "" },
     auditoria: { t: "Auditoría", s: "Quién creó, cambió, activó o apagó cada plantilla e instancia, con identidad real.", sub: "auditoria", acc: "" },
+    api: { t: "API del garden", s: "El backend del Agent Garden en hypnic-platform: qué operación hay detrás de cada pantalla y quién la llama.", sub: "api", acc: "" },
   };
   function ruta() {
     const h = (location.hash || "#catalogo").slice(1);

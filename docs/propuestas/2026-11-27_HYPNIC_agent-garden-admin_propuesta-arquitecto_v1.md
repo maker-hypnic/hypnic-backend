@@ -9,6 +9,8 @@
 
 ## 0. Resumen en diez líneas
 
+> **Precisión de Juan (27-nov, chat):** el **Agent Garden es el backend**: un módulo del API (hypnic-platform, `api.hypnic.us`) que permite crear agentes, modificar su harness y conectar los MCP de cada uno. El admin es el front que lo administra; Agent Runtime de Google y `hypnic-agents` son solo donde corren. Todo lo que sigue se lee con esa definición: donde dice «plano de control en platform» léase «el Agent Garden». El contrato de rutas propuesto (`/api/garden/*`) está en la pestaña «API del garden» de la maqueta.
+
 1. **Recomendación: mixto, con el control en nuestro código.** El catálogo, las instancias por empresa, el agente madre, las solicitudes, el consumo y la auditoría viven en **hypnic-platform** (base de datos y panel admin, sección Second Brain › Agent Garden). Los agentes **corren** detrás de un puerto propio con dos adaptadores que ya existen hoy en producción o en pruebas: **Agent Runtime de Google vía ADK** (como `ori-agentes`) y **`hypnic-agents`** en Cloud Run (el SAC de Pants).
 2. **La idea de «un frontend conectado al Agent Garden de Google» no se sostiene tal cual.** Agent Garden es una biblioteca de plantillas y ejemplos; no tiene instancias por empresa ni una API para administrarlas. Lo que sí sirve de Google es **Agent Runtime** (correr), **Agent Registry** (inventario de lo desplegado) y el ADK (construir). Mar tenía razón en la reunión.
 3. **La Managed Agents API no entra en v1.** Está en Preview (v1beta1), solo en la ubicación `global`, con un único `base_agent` (`antigravity-preview-05-2026`) y sin tarifa propia publicada. Se evalúa como **tercer adaptador** del mismo puerto cuando salga de Preview, sin tocar el dominio.
